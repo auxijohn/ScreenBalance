@@ -48,7 +48,7 @@ These 10 questions map the user's **Goals** to the app's **Metrics**, creating t
 | 7 | "Do you feel anxious if you don't check for 2 hours?" | Anxiety Baseline | Stress Floor Calibration |
 | 8 | "Which app leaves you feeling 'drained'?" | Post-Usage Affect | Blocking Strategy |
 | 9 | "How long is your ideal 'Deep Work' silence?" | Focus Goal | Timeout Duration |
-| 10| "When overstimulated, do you prefer an **Active reset** (movement) or a **Still reset** (breathing)?" | **Agency & Control:** Lets the user choose their preferred regulation style. | Reset Preference |
+| 10| "When you are stressed, is your phone a way to **escape** the feeling or a way to **resolve** the problem?" | **Avoidance Behavior:** Distinguishes between productive use and emotional numbing. | Avoidance Baseline |
 
 ---
 
