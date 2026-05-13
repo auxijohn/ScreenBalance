@@ -22,6 +22,8 @@
                 <div class="step" id="indicator-2">2</div>
                 <div class="step-line"></div>
                 <div class="step" id="indicator-3">3</div>
+                <div class="step-line"></div>
+                <div class="step" id="indicator-4">4</div>
             </div>
         </header>
 
@@ -52,20 +54,40 @@
                 </div>
             </section>
 
-            <!-- Step 2: Settings (Hidden initially) -->
+            <!-- Step 2: Privacy & Permissions (New) -->
             <section id="step-2" class="view">
+                <div class="content-card">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <i data-lucide="shield-check" style="width: 64px; height: 64px; color: var(--accent-teal); margin-bottom: 1rem;"></i>
+                        <h1>100% On-Device Privacy</h1>
+                        <p>Your data never leaves this phone.</p>
+                    </div>
+                    
+                    <div class="setting-group" style="margin-bottom: 2.5rem;">
+                        <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="smartphone"></i> Local-First Processing</h3>
+                        <p>To detect digital fatigue, ScreenBalance needs to monitor your app switching speed locally. <strong>We do not track keystrokes or read your messages.</strong> All behavioral analysis runs directly on your device via Edge AI.</p>
+                    </div>
+
+                    <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="goToStep(3)">
+                        <i data-lucide="check-circle"></i> Grant Usage Access
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step 3: Settings (Formerly Step 2) -->
+            <section id="step-3" class="view">
                 <div class="content-card">
                     <h1>App Configuration</h1>
                     <p>Designate your digital boundaries</p>
                     <div class="settings-list">
                         <!-- Settings items -->
                     </div>
-                    <button class="btn-primary" onclick="goToStep(3)">Save & Continue</button>
+                    <button class="btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;" onclick="goToStep(4)">Save & Continue</button>
                 </div>
             </section>
 
-            <!-- Step 3: Simulation (Hidden initially) -->
-            <section id="step-3" class="view">
+            <!-- Step 4: Simulation (Formerly Step 3) -->
+            <section id="step-4" class="view">
                 <div class="content-card" style="padding: 2.5rem; max-height: 80vh; overflow-y: auto;">
                     <h1>Predictive Scenarios</h1>
                     <p>Select a scenario to simulate the specific notification.</p>
