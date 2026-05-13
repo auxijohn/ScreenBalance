@@ -38,7 +38,7 @@ const quizData = [
     {
         question: "Do you feel anxious if you don't check for 2 hours?",
         options: ["No, it's a relief", "Slightly", "Yes, quite a bit", "I check every 15 mins"],
-        connection: "Anxiety Baseline",
+        connection: "Stress Baseline",
         metric: "Stress Floor Calibration"
     },
     {
@@ -66,14 +66,14 @@ const scenarios = [
     { theme: "Focus", name: "The Void", trigger: "20+ mins of continuous scrolling.", message: "You've been scrolling for a while. This can create a 'mental fog.' Let's pull your awareness back to the room.", intervention: "The 5-Object Scan: Look away from the screen and find 5 objects in the room that are the same color." },
     { theme: "Focus", name: "Reactive Mode", trigger: "5+ notification-driven opens in 10 mins.", message: "You're reacting to pings as they come. This high-alert mode increases cognitive load. Want to take back control?", intervention: "The Horizon View: Stand up and look at the furthest point you can see out a window for 60 seconds to reset your visual system." },
     { theme: "Social", name: "Social Spiral", trigger: "10+ rapid profile views on Social apps.", message: "You're looking at a lot of social profiles. This can sometimes trigger subconscious comparison stress. Shall we ground ourselves?", intervention: "The Heart-Hand Grounding: Place one hand on your heart and one on your belly. Feel your own breath for 30 seconds." },
-    { theme: "Social", name: "Ghosting Anxiety", trigger: "Typing >100 chars, deleting all, and closing.", message: "It looks like you're hesitating on a message. Overthinking can build social tension. Let's take a breath before deciding.", intervention: "The 4-7-8 Breath: Inhale for 4s, hold for 7s, exhale for 8s to calm the nervous system." },
+    { theme: "Social", name: "Ghosting Tension", trigger: "Typing >100 chars, deleting all, and closing.", message: "It looks like you're hesitating on a message. Overthinking can build social tension. Let's take a breath before deciding.", intervention: "The 4-7-8 Breath: Inhale for 4s, hold for 7s, exhale for 8s to calm the mind and body." },
     { theme: "Rest", name: "Midnight Drift", trigger: "Usage 1 hour past Sleep Goal.", message: "It's past your quiet hour. Late-night light can trick your brain into staying 'alert' when it needs rest.", intervention: "Tactile Grounding: Put your phone down and touch 3 different textures (e.g., a cold table, a soft pillow, your own palms)." },
     { theme: "Rest", name: "Last Scroll Loop", trigger: "3+ Lock/Unlock cycles in <2 mins at night.", message: "You're trying to put the phone away, but the pull is strong. This 'last scroll' loop delays deep rest.", intervention: "The Darkroom Reset: Put the phone in a drawer, turn off the lights, and sit in silence for 60 seconds." },
     { theme: "Rest", name: "Work-Life Blur", trigger: "Opening Slack/Email during 'Digital Sunset'.", message: "Checking work apps now can prevent your brain from fully decompressing. Is this urgent, or can it wait for 'Future You'?", intervention: "The Physical Boundary: Walk to a different room or stand up and do a full-body stretch to mark the end of 'work mode.'" },
-    { theme: "Novelty", name: "Phantom Check", trigger: "10+ unlocks in 15 mins (no pings).", message: "You've checked in 10 times with no alerts. This 'phantom checking' keeps your mind on high-alert.", intervention: "Somatic Release: Roll your shoulders back 5 times and take one slow, deep breath with your eyes closed." },
+    { theme: "Novelty", name: "Phantom Check", trigger: "10+ unlocks in 15 mins (no pings).", message: "You've checked in 10 times with no alerts. This 'phantom checking' keeps your mind on high-alert.", intervention: "Physical Release: Roll your shoulders back 5 times and take one slow, deep breath with your eyes closed." },
     { theme: "Novelty", name: "Novelty Hunt", trigger: "5+ Shopping/Store apps in 10 mins.", message: "You're searching for something new. This 'novelty hunt' can be a sign of underlying restlessness.", intervention: "The Sensory Swap: Find a physical object near you (a pen, a stone, a glass) and notice its weight and temperature for 60 seconds." },
     { theme: "Stress", name: "Info Overload", trigger: "5+ news/high-intensity apps in 15 mins.", message: "You're processing a lot of high-intensity info. This can trigger a 'threat detection' state. Let's find some calm.", intervention: "The Cold Reset: Splash some cold water on your face or hold a cold object for 30 seconds to calm the Vagus nerve." },
-    { theme: "Stress", name: "Interaction Spike", trigger: "Rapid scrolling speed (px/sec) doubling.", message: "Your scrolling speed has increased. This often happens when the nervous system is revving up. Ready to slow down?", intervention: "The Weighted Reset: Sit down and press your feet firmly into the floor, feeling the support of the ground for 60 seconds." }
+    { theme: "Stress", name: "Interaction Spike", trigger: "Rapid scrolling speed (px/sec) doubling.", message: "Your scrolling speed has increased. This often happens when you are feeling overstimulated. Ready to slow down?", intervention: "The Weighted Reset: Sit down and press your feet firmly into the floor, feeling the support of the ground for 60 seconds." }
 ];
 
 let currentQuestionIndex = 0;
@@ -84,6 +84,7 @@ let currentInterventionText = "Focus on the orb. Breathe with its rhythm.";
 const step1 = document.getElementById('step-1');
 const step2 = document.getElementById('step-2');
 const step3 = document.getElementById('step-3');
+const step4 = document.getElementById('step-4');
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const quizProgress = document.getElementById('quiz-progress');
@@ -192,14 +193,14 @@ function goToStep(stepNum) {
     document.getElementById(`step-${stepNum}`).classList.add('active');
     document.getElementById(`indicator-${stepNum}`).classList.add('active');
 
-    if (stepNum === 2) {
+    if (stepNum === 3) {
         renderSettings();
-    } else if (stepNum === 3) {
+    } else if (stepNum === 4) {
         renderScenarios();
     }
 }
 
-// Step 2 Logic: Settings
+// Step 3 Logic: Settings
 function renderSettings() {
     const settingsList = document.querySelector('.settings-list');
     settingsList.innerHTML = `
@@ -220,7 +221,7 @@ function renderSettings() {
     lucide.createIcons();
 }
 
-// Step 3 Logic: Intervention Simulation
+// Step 4 Logic: Intervention Simulation
 function renderScenarios() {
     const grid = document.getElementById('scenarios-grid');
     grid.innerHTML = '';
