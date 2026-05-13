@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScreenBalance | Predictive Digital Wellbeing</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="step-1-bg">
+    <div id="app">
+        <!-- Navigation / Header -->
+        <header>
+            <div class="logo">
+                <i data-lucide="shield-check"></i>
+                <span>ScreenBalance</span>
+            </div>
+            <div class="step-indicator">
+                <div class="step active" id="indicator-1">1</div>
+                <div class="step-line"></div>
+                <div class="step" id="indicator-2">2</div>
+                <div class="step-line"></div>
+                <div class="step" id="indicator-3">3</div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Step 1: The Quiz -->
+            <section id="step-1" class="view active">
+                <div class="content-card">
+                    <div class="quiz-header">
+                        <h1>Personal Awareness Quiz</h1>
+                        <p>Establishing your Intention Baseline</p>
+                        <div class="progress-bar">
+                            <div id="quiz-progress" class="progress-fill" style="width: 10%"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="quiz-container">
+                        <div id="question-text" class="question">How many unlocks per hour is 'just right'?</div>
+                        <div id="options-container" class="options">
+                            <!-- Options will be injected here -->
+                        </div>
+                    </div>
+
+                    <div class="quiz-footer">
+                        <button id="prev-btn" class="btn-secondary" style="visibility: hidden;"><i data-lucide="arrow-left"></i> Back</button>
+                        <span id="question-number">Question 1 of 10</span>
+                        <button id="next-btn" class="btn-primary" style="visibility: hidden;">Next <i data-lucide="arrow-right"></i></button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 2: Settings (Hidden initially) -->
+            <section id="step-2" class="view">
+                <div class="content-card">
+                    <h1>App Configuration</h1>
+                    <p>Designate your digital boundaries</p>
+                    <div class="settings-list">
+                        <!-- Settings items -->
+                    </div>
+                    <button class="btn-primary" onclick="goToStep(3)">Save & Continue</button>
+                </div>
+            </section>
+
+            <!-- Step 3: Simulation (Hidden initially) -->
+            <section id="step-3" class="view">
+                <div class="content-card" style="padding: 2.5rem; max-height: 80vh; overflow-y: auto;">
+                    <h1>Predictive Scenarios</h1>
+                    <p>Select a scenario to simulate the specific notification.</p>
+                    <div id="scenarios-grid" class="scenarios-grid">
+                        <!-- Scenarios injected via JS -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Notification Overlay (Simulated) -->
+        <div id="notification" class="notification-toast">
+            <div class="notif-icon"><i data-lucide="zap"></i></div>
+            <div class="notif-content">
+                <strong>Digital Overload Detected</strong>
+                <p>You're moving fast. Ready for a quick reset?</p>
+            </div>
+            <button class="btn-notif" onclick="openReset()">Open Reset</button>
+        </div>
+
+        <!-- Reset Environment Overlay (Hidden) -->
+        <div id="reset-overlay" class="overlay">
+            <div class="reset-container">
+                <div class="glow-orb" id="orb"></div>
+                <div id="intervention-text" class="intervention-msg">
+                    Focus on the orb. Breathe with its rhythm.
+                </div>
+                <div class="timer" id="reset-timer">60s</div>
+                <button class="btn-secondary" onclick="closeReset()">I feel better</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
