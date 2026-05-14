@@ -1,43 +1,93 @@
-# Implementation Plan - Phase 2: Proactive Intervention Simulation
+# Implementation Plan
 
-Building out Step 3 of the Digital Wellbeing Prototype: The Nervous System Reset and the Visual Mood Check.
-
-## User Review Required
-
-> [!IMPORTANT]
-> This plan covers the logic and UI for the Somatic Interventions and the Visual Mood Check. Please review the proposed flow below and approve so I can begin generating the required image assets and coding the logic.
+This document outlines the technical steps required to build out the new onboarding flow for ScreenBalance, specifically focusing on the Personal Awareness Quiz and the Intention Zone logic.
 
 ## Current Progress
-- [x] Step 1: The Personal Awareness Quiz (Completed with premium UI and dynamic ZooZoo background)
-- [x] Step 2: App Configuration & Settings (Completed with emotional boundary background)
-- [ ] Step 3: Proactive Intervention Simulation (Next up)
+- [x] Step 1: The Personal Awareness Quiz (Completed)
+- [x] Step 2: The Intention Zone Card (Completed)
+- [x] Step 3: App Configuration Section (Completed)
+- [x] Step 4: OS Consent & Privacy (Completed)
+- [x] Step 5: Screen Intervention Simulation (Completed)
+- [x] Step 6: Post-Reset Validation (Completed)
 
-## Proposed Changes
+## User Review Required
+> [!IMPORTANT]
+> Please review the technical scoring logic proposed for Step 1 below. Once approved, I will immediately begin modifying the code in `app.js` and `index.html`.
 
-### 1. Randomized Somatic Interventions
-I will update the reset overlay logic in `app.js` and `index.html` to randomly select and display one of the following interventions when the user clicks "Open Reset":
-- **The Sky Reset**: "Step outside or near a window, tilt your face up, and close your eyes."
-- **The 5-Object Scan**: "Look away from the screen and find 5 objects in the room that are the same color."
-- **The 4-7-8 Breath**: "Inhale for 4s, hold for 7s, exhale for 8s to calm your nervous system."
+---
 
-### 2. The Visual Mood Check
-After the 60-second reset timer finishes, the screen will transition to a **Post-Reset Validation** phase.
-I will generate 3 custom images representing different entropy states:
-- **Zone A (Calm)**: Someone sipping tea by a window.
-- **Zone B (Order)**: Someone neatly organizing a bookshelf.
-- **Zone C (High-Input)**: A crowded marathon finish line.
+## Step 1: The 1-Minute Personal Awareness Quiz
 
-The user will be prompted to select the image they resonate with most. 
-- If A or B is selected -> Reset Complete, close overlay.
-- If C is selected -> Suggest another quick 30s reset.
+**Goal:** Establish the user's "Intentional vs. Emotional" baseline by mapping their quiz answers to specific psychological profiles.
 
-### 3. UI/UX Enhancements
-- Add CSS animations for the image selection.
-- Update the "Glow Orb" to pulse according to the selected breathing or reset pacing.
+### Technical Details:
+1. **Data Structure (`app.js`)**: 
+   *   Replace the current `quizData` array with the exact 10 questions defined in the architecture document (e.g., "When you pick up your phone, how often do you know exactly why?").
+   *   Assign "Profile Weights" to each multiple-choice option.
+2. **Scoring Algorithm (`app.js`)**:
+   *   Create a new function `calculateIntentionProfile(answersArray)`.
+   *   As the user completes the quiz, the function will tally the points. For example, if the user consistently selects options indicating high stress during work tasks, the algorithm will heavily weight the `Task Avoidant` profile.
+   *   The function will return the dominant profile object containing the Title, Icon, and Intervention Strategy.
+
+---
+
+## Step 2: The Intention Zone Card
+
+**Goal:** Present the calculated Intention Profile to the user before they configure the app.
+
+### Technical Details:
+1. **Presentation Layer (`index.html`)**:
+   *   Inject a brand new `<section id="step-2" class="view">` directly after the quiz.
+   *   It will contain dynamic HTML placeholders: `<h1 id="profile-title">`, `<p id="profile-insight">`, and `<div id="profile-strategy">`.
+2. **State Management (`app.js`)**:
+   *   When the quiz completes, `app.js` will call `goToStep(2)`.
+   *   The DOM elements in Step 2 will be dynamically hydrated with the results from the `calculateIntentionProfile` function.
+3. **Styling (`style.css`)**:
+   *   Create a new `.intention-card` CSS class to ensure the profile reveal looks highly premium, utilizing dark glassmorphism and subtle glowing accents.
 
 ## Verification Plan
-1. Trigger the notification.
-2. Verify the reset overlay displays a randomized intervention.
-3. Wait for the timer to complete.
-4. Verify the 3 mood-check images appear.
-5. Test selecting Zone A (closes) vs Zone C (extends reset).
+*   **Manual Testing**: Run through the 10-question quiz selecting options biased towards evening usage.
+*   **Validation**: Ensure the algorithm correctly calculates and displays the **🌙 Evening Escapist** profile on the newly built Step 2 screen.
+
+---
+
+## Step 3: App Configuration Section & Step 4: Consent
+
+**Goal:** Allow users to set up tiered boundaries and grant OS-level permissions using destigmatized language.
+
+### Technical Details:
+1. **Reorder Flow (`index.html`)**:
+   *   Swap the current Privacy and Settings screens. Step 3 will now be App Configuration, and Step 4 will be OS Consent, matching the architecture exactly.
+2. **Configuration UI (`index.html` & `style.css`)**:
+   *   Update the configuration screen to clearly define the three tiers: **Disengage (The Nudge)**, **Block (The Wall)**, and **Utility**.
+3. **Consent UI**:
+   *   Update the text on the Consent screen to emphasize "Nervous System Protection" rather than "screen tracking."
+
+---
+
+## Step 5: Screen Intervention
+
+**Goal:** Simulate the 12 predictive scenarios and trigger the immersive "Reset UI" with the Glow Orb.
+
+### Technical Details:
+1. **Data Model (`app.js`)**:
+   *   Ensure the `scenarios` array contains all 12 specific scenarios (e.g., "The Void", "Midnight Drift", "Phantom Check") and their respective somatic interventions (e.g., "The 4-7-8 Breath").
+2. **Reset Overlay (`index.html` & `app.js`)**:
+   *   When a simulation is triggered, load the specific somatic instruction into the Reset UI overlay.
+   *   Implement the 60-second countdown timer.
+
+---
+
+## Step 6: Post-Reset Validation
+
+**Goal:** Implement the branching logic for the visual mood check or motivational quote once the 60-second reset completes.
+
+### Technical Details:
+1. **Branching UI (`index.html`)**:
+   *   Create a hidden "Validation Container" inside the Reset Overlay that appears when the timer hits zero.
+   *   It will ask: "Would you like to validate your state?" with YES / NO buttons.
+2. **Logic (`app.js`)**:
+   *   **If YES**: Render a grid of 3 "Entropy Images" (Low, Medium, High). Selecting Low entropy closes the overlay. Selecting High entropy suggests a further break.
+   *   **If NO**: Pull the `insight` or a motivational quote from the user's calculated Intention Profile (from Step 2) and display it before closing the overlay.
+3. **Styling (`style.css`)**:
+   *   Style the entropy image cards with hover effects and smooth transitions for the final branching flow.

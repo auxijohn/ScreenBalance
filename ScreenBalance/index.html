@@ -24,6 +24,8 @@
                 <div class="step" id="indicator-3">3</div>
                 <div class="step-line"></div>
                 <div class="step" id="indicator-4">4</div>
+                <div class="step-line"></div>
+                <div class="step" id="indicator-5">5</div>
             </div>
         </header>
 
@@ -54,40 +56,78 @@
                 </div>
             </section>
 
-            <!-- Step 2: Privacy & Permissions (New) -->
+            <!-- Step 2: Intention Card (New) -->
             <section id="step-2" class="view">
-                <div class="content-card">
-                    <div style="text-align: center; margin-bottom: 2rem;">
-                        <i data-lucide="shield-check" style="width: 64px; height: 64px; color: var(--accent-teal); margin-bottom: 1rem;"></i>
-                        <h1>100% On-Device Privacy</h1>
-                        <p>Your data never leaves this phone.</p>
-                    </div>
+                <div class="content-card intention-card">
+                    <div class="intention-icon" id="profile-icon">🛡️</div>
+                    <h1 id="profile-title">The Seeker</h1>
+                    <p id="profile-insight" class="insight-text">You are seeking more intentionality in your digital life.</p>
                     
-                    <div class="setting-group" style="margin-bottom: 2.5rem;">
-                        <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="smartphone"></i> Local-First Processing</h3>
-                        <p>To detect digital fatigue, ScreenBalance needs to monitor your app switching speed locally. <strong>We do not track keystrokes or read your messages.</strong> All behavioral analysis runs directly on your device via Edge AI.</p>
+                    <div class="strategy-box">
+                        <h3 style="display: flex; align-items: center; gap: 0.5rem; justify-content: center; margin-bottom: 0.5rem;"><i data-lucide="target"></i> Your Strategy</h3>
+                        <p id="profile-strategy">We will build a customized boundary system to protect your focus.</p>
                     </div>
 
-                    <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="goToStep(3)">
-                        <i data-lucide="check-circle"></i> Grant Usage Access
+                    <button class="btn-primary" style="width: 100%; justify-content: center; margin-top: 2rem;" onclick="goToStep(3)">
+                        Accept Profile & Continue
                     </button>
                 </div>
             </section>
 
-            <!-- Step 3: Settings (Formerly Step 2) -->
+            <!-- Step 3: App Configuration (Formerly Step 4) -->
             <section id="step-3" class="view">
                 <div class="content-card">
                     <h1>App Configuration</h1>
                     <p>Designate your digital boundaries</p>
-                    <div class="settings-list">
-                        <!-- Settings items -->
+                    
+                    <div class="settings-container">
+                        <div class="setting-tier disengage">
+                            <h3><i data-lucide="bell-off"></i> Disengage (The Nudge)</h3>
+                            <p>Gentle reminders for useful but slippery apps.</p>
+                            <div class="app-chip-row" id="disengage-list"></div>
+                        </div>
+                        
+                        <div class="setting-tier block">
+                            <h3><i data-lucide="shield-alert"></i> Block (The Wall)</h3>
+                            <p>Requires a 1-minute reset to unlock.</p>
+                            <div class="app-chip-row" id="block-list"></div>
+                        </div>
+
+                        <div class="setting-tier utility">
+                            <h3><i data-lucide="tool"></i> Utility Exceptions</h3>
+                            <p>Essential apps excluded from monitoring.</p>
+                            <div class="app-chip-row" id="utility-list"></div>
+                        </div>
                     </div>
-                    <button class="btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;" onclick="goToStep(4)">Save & Continue</button>
+
+                    <button class="btn-primary" style="width: 100%; justify-content: center; margin-top: 1.5rem;" onclick="goToStep(4)">
+                        Save & Continue
+                    </button>
                 </div>
             </section>
 
-            <!-- Step 4: Simulation (Formerly Step 3) -->
+            <!-- Step 4: Consent to the User (Formerly Step 3) -->
             <section id="step-4" class="view">
+                <div class="content-card">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <i data-lucide="heart-pulse" style="width: 64px; height: 64px; color: var(--accent-teal); margin-bottom: 1rem;"></i>
+                        <h1>Nervous System Protection</h1>
+                        <p>Consent to detect your digital state.</p>
+                    </div>
+                    
+                    <div class="setting-group" style="margin-bottom: 2.5rem;">
+                        <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="lock"></i> Privacy-First Processing</h3>
+                        <p>We monitor the <strong>pace of your app switching</strong> to detect frantic behavior. We do not read messages or track keystrokes. All analysis happens <strong>locally</strong> on your device.</p>
+                    </div>
+
+                    <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="goToStep(5)">
+                        <i data-lucide="check-circle"></i> Enable Protection
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step 5: Simulation (Formerly Step 4) -->
+            <section id="step-5" class="view">
                 <div class="content-card" style="padding: 2.5rem; max-height: 80vh; overflow-y: auto;">
                     <h1>Predictive Scenarios</h1>
                     <p>Select a scenario to simulate the specific notification.</p>
@@ -116,7 +156,44 @@
                     Focus on the orb. Breathe with its rhythm.
                 </div>
                 <div class="timer" id="reset-timer">60s</div>
-                <button class="btn-secondary" onclick="closeReset()">I feel better</button>
+                
+                <!-- Step 6: Post-Reset Validation UI -->
+                <div id="validation-ui" style="display: none;">
+                    <h1 style="margin-bottom: 2rem;">Reset Complete.</h1>
+                    <p style="color: var(--text-secondary); margin-bottom: 3rem;">Would you like to validate your regulated state with a quick mood check?</p>
+                    <div style="display: flex; gap: 1rem; justify-content: center;">
+                        <button class="btn-primary" onclick="handleValidationResponse(true)">Yes, check mood</button>
+                        <button class="btn-secondary" onclick="handleValidationResponse(false)">No, just finish</button>
+                    </div>
+                </div>
+
+                <!-- Mood Check (Projective Selection) -->
+                <div id="mood-check-ui" style="display: none;">
+                    <h1 style="margin-bottom: 1rem;">Visual Mood Check</h1>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Which image resonates with your current state?</p>
+                    <div class="entropy-grid">
+                        <div class="entropy-card" onclick="selectEntropy('low')">
+                            <div class="entropy-img low"></div>
+                            <span>Stillness</span>
+                        </div>
+                        <div class="entropy-card" onclick="selectEntropy('med')">
+                            <div class="entropy-img med"></div>
+                            <span>Activity</span>
+                        </div>
+                        <div class="entropy-card" onclick="selectEntropy('high')">
+                            <div class="entropy-img high"></div>
+                            <span>Input</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quote UI -->
+                <div id="quote-ui" style="display: none;">
+                    <blockquote id="motivational-quote" style="font-size: 1.5rem; margin-bottom: 3rem; font-style: italic; max-width: 500px;">
+                        "The first hour of the day belongs to you, not the algorithm."
+                    </blockquote>
+                    <button class="btn-primary" onclick="closeReset()">Return to Focus</button>
+                </div>
             </div>
         </div>
     </div>

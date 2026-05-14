@@ -1,65 +1,102 @@
 const quizData = [
     {
-        question: "How many unlocks per hour is 'just right'?",
-        options: ["Less than 2", "3 to 5", "6 to 10", "More than 10"],
-        connection: "Intentionality Goal",
-        metric: "Screen Unlock Frequency"
+        question: "When you pick up your phone, how often do you know exactly why you unlocked it?",
+        options: ["Almost always", "Usually", "Sometimes", "Rarely"],
+        weights: { "PhantomChecker": [0, 1, 2, 3] }
     },
     {
-        question: "When switching apps, are you Bored or Working?",
-        options: ["Mostly working", "Mixed", "Mostly bored", "I don't know"],
-        connection: "Root Cause Analysis",
-        metric: "App Switching Patterns"
+        question: "How soon after waking up do you usually check social media, news, or emails?",
+        options: ["Immediately in bed", "Within 15 minutes", "During breakfast", "After I start my day"],
+        weights: { "MorningScroller": [3, 2, 1, 0] }
     },
     {
-        question: "Do you pick up your phone and forget why?",
-        options: ["Never", "Rarely", "Often", "Constantly"],
-        connection: "Dissociation Level",
-        metric: "Intentionality Score"
+        question: "Do you find yourself endlessly scrolling in bed, knowing you should be sleeping?",
+        options: ["Every night", "Often", "Occasionally", "Rarely"],
+        weights: { "EveningEscapist": [3, 2, 1, 0] }
     },
     {
-        question: "Which app do you use to 'numb out'?",
-        options: ["Instagram / TikTok", "Twitter / X", "YouTube / Netflix", "Games / Other"],
-        connection: "Dopamine Source",
-        metric: "Block/Disengage Priority"
+        question: "Around 2-3 PM, do you reach for short-form video to fight off a drop in energy?",
+        options: ["Yes, it's my caffeine", "Sometimes", "Rarely", "Never"],
+        weights: { "MiddaySlumper": [3, 2, 0, 0] }
     },
     {
-        question: "When does your phone become an 'enemy of sleep'?",
-        options: ["Before 10 PM", "11 PM - 12 AM", "After 1 AM", "It doesn't"],
-        connection: "Circadian Boundary",
-        metric: "Late Night Usage"
+        question: "If you face a difficult or boring task, does your app-switching suddenly increase?",
+        options: ["Always", "Often", "Sometimes", "No, I stay focused"],
+        weights: { "TaskAvoidant": [3, 2, 1, 0] }
     },
     {
-        question: "How soon do you feel the 'magnetic pull' after waking?",
-        options: ["Instantly", "Within 15 mins", "After 1 hour", "I wait for breakfast"],
-        connection: "Addiction Strength",
-        metric: "Morning Frequency"
+        question: "How often do you unlock your phone in an elevator or line, purely out of muscle memory?",
+        options: ["Constantly", "Often", "Sometimes", "Rarely"],
+        weights: { "PhantomChecker": [3, 2, 1, 0] }
     },
     {
-        question: "Do you feel anxious if you don't check for 2 hours?",
-        options: ["No, it's a relief", "Slightly", "Yes, quite a bit", "I check every 15 mins"],
-        connection: "Stress Baseline",
-        metric: "Stress Floor Calibration"
+        question: "When a notification pops up, how hard is it for you to ignore it and keep working?",
+        options: ["Impossible", "Very hard", "Manageable", "Easy"],
+        weights: { "NotificationReactive": [3, 2, 1, 0] }
     },
     {
-        question: "Which app leaves you feeling 'drained'?",
-        options: ["Social Media", "Work / Email", "News / High-Input", "Messaging / WhatsApp"],
-        connection: "Post-Usage Affect",
-        metric: "Blocking Strategy"
+        question: "Do you ever read negative news or endless feeds until you feel tense or 'zoned out'?",
+        options: ["Frequently", "Sometimes", "Rarely", "Never"],
+        weights: { "Doomscroller": [3, 2, 0, 0] }
     },
     {
-        question: "How long is your ideal 'Deep Work' silence?",
-        options: ["30 mins", "1 hour", "2 hours+", "I can't work in silence"],
-        connection: "Focus Goal",
-        metric: "Timeout Duration"
+        question: "After using specific apps, do you frequently feel drained, envious, or 'less than'?",
+        options: ["Very often", "Often", "Sometimes", "Rarely"],
+        weights: { "SocialComparer": [3, 2, 1, 0] }
     },
     {
-        question: "When you are stressed, is your phone a way to escape or resolve?",
-        options: ["Resolve (Utility)", "A mix of both", "Escape (Numbing)", "Mostly Avoidance"],
-        connection: "Avoidance Behavior",
-        metric: "Avoidance Baseline"
+        question: "If we could help you reclaim one thing, would you choose:",
+        options: ["More Focus", "Better Sleep", "Less Anxiety", "More Intentionality"],
+        weights: { "TaskAvoidant": [2, 0, 0, 0], "EveningEscapist": [0, 2, 0, 0], "Doomscroller": [0, 0, 2, 0], "PhantomChecker": [0, 0, 0, 2] }
     }
 ];
+
+const profiles = {
+    "EveningEscapist": { id: "EveningEscapist", icon: "🌙", title: "The Evening Escapist", insight: "You are highly intentional during the day, but use your phone to 'numb out' after 8 PM.", strategy: "We will set high-friction interventions triggered automatically in the evening." },
+    "MorningScroller": { id: "MorningScroller", icon: "🌅", title: "The Morning Scroller", insight: "You wake up and immediately check feeds, spiking cortisol right at the start of your day.", strategy: "We will enforce a strict 'Morning Buffer Zone' to protect your first hour." },
+    "MiddaySlumper": { id: "MiddaySlumper", icon: "☕", title: "The Midday Slumper", insight: "You experience an afternoon energy crash and use short-form video for quick dopamine.", strategy: "We will suggest physical movement during afternoon usage spikes." },
+    "TaskAvoidant": { id: "TaskAvoidant", icon: "🏃", title: "The Task Avoidant", insight: "Your app-switching correlates heavily with facing stressful or boring tasks.", strategy: "We will interrupt rapid switching during 'Focus Hours' with CBT prompts." },
+    "PhantomChecker": { id: "PhantomChecker", icon: "👻", title: "The Phantom Checker", insight: "You unlock your phone constantly out of pure muscle memory, even without notifications.", strategy: "We will place a mandatory 3-second breathing delay on trigger apps." },
+    "NotificationReactive": { id: "NotificationReactive", icon: "🔔", title: "The Notification Reactive", insight: "You get derailed easily by a single ping, shifting your attention entirely.", strategy: "We will limit post-notification sessions to 60 seconds." },
+    "Doomscroller": { id: "Doomscroller", icon: "🌀", title: "The Doomscroller", insight: "You endlessly scroll to numb anxiety, often entering a dissociative state.", strategy: "We will use strong somatic pattern interrupts to break the trance." },
+    "SocialComparer": { id: "SocialComparer", icon: "⚖️", title: "The Social Comparer", insight: "Usage on specific platforms frequently triggers FOMO or emotional drainage.", strategy: "We will strictly cap session duration followed by emotional validation." },
+    "Default": { id: "Default", icon: "🛡️", title: "The Seeker", insight: "You are seeking more intentionality in your digital life.", strategy: "We will build a customized boundary system to protect your focus." }
+};
+
+let userProfile = profiles["Default"];
+
+function calculateIntentionProfile() {
+    const scores = { "MorningScroller": 0, "EveningEscapist": 0, "MiddaySlumper": 0, "TaskAvoidant": 0, "PhantomChecker": 0, "NotificationReactive": 0, "Doomscroller": 0, "SocialComparer": 0 };
+    
+    answers.forEach((ansIndex, qIndex) => {
+        const weights = quizData[qIndex].weights;
+        if(weights) {
+            for (const profile in weights) {
+                const points = Array.isArray(weights[profile]) ? weights[profile][ansIndex] : weights[profile];
+                scores[profile] += points || 0;
+            }
+        }
+    });
+
+    let maxScore = -1;
+    let dominantProfile = "Default";
+    for (const profile in scores) {
+        if (scores[profile] > maxScore) {
+            maxScore = scores[profile];
+            dominantProfile = profile;
+        }
+    }
+    
+    userProfile = profiles[maxScore > 0 ? dominantProfile : "Default"];
+    
+    // Inject into Step 2 UI
+    document.getElementById('profile-icon').innerText = userProfile.icon;
+    document.getElementById('profile-title').innerText = userProfile.title;
+    document.getElementById('profile-insight').innerText = userProfile.insight;
+    document.getElementById('profile-strategy').innerText = userProfile.strategy;
+    
+    return userProfile;
+}
 
 const scenarios = [
     { theme: "Focus", name: "Dopamine Loop", trigger: "3+ apps in <60 seconds.", message: "You're moving fast between apps. This rapid switching can fragment your focus. Ready for a quick reset?", intervention: "The Sky Reset: Step outside (or near a window), tilt your face toward the sky, and close your eyes for 60 seconds." },
@@ -170,6 +207,7 @@ nextBtn.onclick = () => {
         currentQuestionIndex++;
         showQuestion(currentQuestionIndex);
     } else {
+        calculateIntentionProfile();
         goToStep(2);
     }
 };
@@ -186,38 +224,51 @@ function goToStep(stepNum) {
     document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
     document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
 
-    // Update background
+    // Update background (now 5 steps)
     document.body.className = `step-${stepNum}-bg`;
 
     // Show target view
     document.getElementById(`step-${stepNum}`).classList.add('active');
-    document.getElementById(`indicator-${stepNum}`).classList.add('active');
+    
+    // Activate all indicators up to the current step
+    for(let i=1; i<=stepNum; i++) {
+        const ind = document.getElementById(`indicator-${i}`);
+        if(ind) ind.classList.add('active');
+    }
 
     if (stepNum === 3) {
         renderSettings();
-    } else if (stepNum === 4) {
+    } else if (stepNum === 5) {
         renderScenarios();
     }
 }
 
-// Step 3 Logic: Settings
+// Step 3 Logic: Settings (Tiered)
 function renderSettings() {
-    const settingsList = document.querySelector('.settings-list');
-    settingsList.innerHTML = `
-        <div class="setting-group">
-            <h3>Disengage (The Nudge)</h3>
-            <p>Gentle reminders for useful but slippery apps</p>
-            <div class="app-chip">WhatsApp <i data-lucide="clock"></i></div>
-            <div class="app-chip">Instagram <i data-lucide="clock"></i></div>
-            <div class="app-chip">Twitter <i data-lucide="clock"></i></div>
-        </div>
-        <div class="setting-group" style="margin-top: 2rem;">
-            <h3>Block (The Wall)</h3>
-            <p>Requires a 1-minute reset to unlock</p>
-            <div class="app-chip block">YouTube <i data-lucide="lock"></i></div>
-            <div class="app-chip block">Facebook <i data-lucide="lock"></i></div>
-        </div>
+    const disengageList = document.getElementById('disengage-list');
+    const blockList = document.getElementById('block-list');
+    const utilityList = document.getElementById('utility-list');
+    
+    if(!disengageList) return;
+
+    disengageList.innerHTML = `
+        <div class="app-chip">WhatsApp <i data-lucide="clock"></i></div>
+        <div class="app-chip">Instagram <i data-lucide="clock"></i></div>
+        <div class="app-chip">Twitter <i data-lucide="clock"></i></div>
     `;
+    
+    blockList.innerHTML = `
+        <div class="app-chip block">YouTube <i data-lucide="lock"></i></div>
+        <div class="app-chip block">TikTok <i data-lucide="lock"></i></div>
+        <div class="app-chip block">Facebook <i data-lucide="lock"></i></div>
+    `;
+
+    utilityList.innerHTML = `
+        <div class="app-chip utility">Banking <i data-lucide="shield"></i></div>
+        <div class="app-chip utility">Maps <i data-lucide="map"></i></div>
+        <div class="app-chip utility">Calculator <i data-lucide="plus-circle"></i></div>
+    `;
+    
     lucide.createIcons();
 }
 
@@ -257,6 +308,13 @@ function openReset() {
     const overlay = document.getElementById('reset-overlay');
     document.getElementById('intervention-text').innerText = currentInterventionText;
     document.getElementById('reset-timer').innerText = "60s";
+    
+    // Reset any previous validation UI
+    document.getElementById('validation-ui').style.display = 'none';
+    document.getElementById('orb').style.display = 'block';
+    document.getElementById('intervention-text').style.display = 'block';
+    document.getElementById('reset-timer').style.display = 'block';
+    
     overlay.classList.add('active');
     startResetTimer();
 }
@@ -274,9 +332,56 @@ function startResetTimer() {
         timerDisplay.innerText = `${timeLeft}s`;
         if (timeLeft <= 0) {
             clearInterval(interval);
-            document.getElementById('intervention-text').innerText = "Perspective Restored.";
+            showPostResetValidation();
         }
     }, 1000);
+}
+
+function showPostResetValidation() {
+    document.getElementById('orb').style.display = 'none';
+    document.getElementById('intervention-text').style.display = 'none';
+    document.getElementById('reset-timer').style.display = 'none';
+    
+    const validationUI = document.getElementById('validation-ui');
+    validationUI.style.display = 'block';
+    lucide.createIcons();
+}
+
+function handleValidationResponse(wantsCheck) {
+    const validationUI = document.getElementById('validation-ui');
+    const moodCheckUI = document.getElementById('mood-check-ui');
+    const quoteUI = document.getElementById('quote-ui');
+    
+    validationUI.style.display = 'none';
+    
+    if (wantsCheck) {
+        moodCheckUI.style.display = 'block';
+    } else {
+        const quoteText = document.getElementById('motivational-quote');
+        // Dynamic quote based on userProfile
+        const quotes = {
+            "EveningEscapist": "Rest is productive. Your worth isn't measured by your evening scroll.",
+            "MorningScroller": "The first hour of the day belongs to you, not the algorithm.",
+            "TaskAvoidant": "The hardest part is the first 5 minutes. You've got this.",
+            "Doomscroller": "The world is big, and your peace is precious. Step back into the real room.",
+            "Default": "You are in control of your attention. Breathe in the silence."
+        };
+        quoteText.innerText = quotes[userProfile.id] || quotes["Default"];
+        quoteUI.style.display = 'block';
+    }
+}
+
+function selectEntropy(level) {
+    const quoteUI = document.getElementById('quote-ui');
+    const moodCheckUI = document.getElementById('mood-check-ui');
+    moodCheckUI.style.display = 'none';
+    
+    if (level === 'low') {
+        document.getElementById('motivational-quote').innerText = "System Regulated. Your focus is restored.";
+    } else {
+        document.getElementById('motivational-quote').innerText = "High stimulus detected. Suggesting another 5 minutes away from the screen.";
+    }
+    quoteUI.style.display = 'block';
 }
 
 // Initialize

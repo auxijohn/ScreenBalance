@@ -1,59 +1,68 @@
-# Brainstorming: Pre-Anxiety Detection & Digital Overload Intelligence
+# ScreenBalance: User Journey & Flow Architecture
 
-## 1. The Core Concept
-The app shifts the focus from traditional "screen time tracking" to **predictive psychological wellbeing**. By monitoring micro-behaviors (unlock frequency, rapid app switching, late-night usage), it identifies patterns of "digital overload" and intervenes *before* the user experiences burnout or severe anxiety.
-
-## 2. Market Comparison: The Paradigm Shift
-Unlike existing "Time Cop" apps (Apple Screen Time, Google Digital Wellbeing, Opal) that focus on **Quantity** (how many hours), this app focuses on **Quality** (how you feel).
-
-| Feature | Existing Apps (Reactive) | This App (Proactive) |
-| :--- | :--- | :--- |
-| **Focus** | Time Limits / Guilt | Nervous System Regulation / Self-Care |
-| **Feedback** | "You spent 4 hours today." | "Your patterns suggest rising stimulation." |
-| **Intervention** | Hard Blocks (Easily bypassed) | Compassionate Resets (Pattern interrupts) |
-| **Intelligence** | Descriptive Data | Predictive Modeling |
-
-## 3. Psychological Mechanics at Play
-As a psychology expert, this approach is effective because:
-1.  **Pattern Interrupts:** Breaks the "dissociative" state of doomscrolling by bringing awareness to the physical body.
-2.  **Somatic Awareness:** Uses "Reset" exercises to regulate the nervous system rather than just locking the screen.
-3.  **Destigmatization:** Frames overusage as a biological response to stimulation ("High Stimulation Mode") rather than a lack of willpower.
+This document outlines the step-by-step user journey for ScreenBalance, transitioning users from standard screen time tracking to proactive, predictive psychological wellbeing.
 
 ---
 
-## 4. Onboarding & Personalization Strategy
-The onboarding process is designed to establish an **"Intentional vs. Emotional"** framework immediately.
+## Step 1: The 1-Minute Personal Awareness Quiz
+**Details:**
+The onboarding process begins with a quiz designed to establish the user's "Intentional vs. Emotional" baseline. Rather than just asking what apps they want to block, we map their goals to psychological metrics to identify the root cause of their digital overload.
 
-### The "Intention Zone" Summary
-At the end of onboarding, the user receives an **"Intention Zone Profile."**
-*   *Example:* "You are an **'Evening Escapist'**. You stay intentional during the day but lose focus after 9 PM. We'll focus our intelligence on your 9 PM - 12 AM patterns."
-
-### Tiered Interventions
-*   **Disengage (The Nudge):** For useful but slippery apps (e.g., WhatsApp). Uses gentle prompts or grayscale filters.
-*   **Block (The Wall):** For purely "Emotional Distraction" apps (e.g., Facebook). Requires a 1-minute reset to "unlock."
-
----
-
-## 5. The 1-Minute Personal Awareness Quiz
-These 10 questions map the user's **Goals** to the app's **Metrics**, creating the "Intention Baseline."
-
-| # | Question | Psychological Connection | Metric Mapping |
+| # | Question | Psychological Connection | Intention Zone Target |
 | :--- | :--- | :--- | :--- |
-| 1 | "How many unlocks per hour is 'just right'?" | Intentionality Goal | Screen Unlock Frequency |
-| 2 | "When switching apps, are you Bored or Working?" | Root Cause Analysis | App Switching Patterns |
-| 3 | "Do you pick up your phone and forget why?" | Dissociation Level | Intentionality Score |
-| 4 | "Which app do you use to 'numb out'?" | Dopamine Source | Block/Disengage Priority |
-| 5 | "When does your phone become an 'enemy of sleep'?" | Circadian Boundary | Late Night Usage |
-| 6 | "How soon do you feel the 'magnetic pull' after waking?" | Addiction Strength | Morning Frequency |
-| 7 | "Do you feel anxious if you don't check for 2 hours?" | Anxiety Baseline | Stress Floor Calibration |
-| 8 | "Which app leaves you feeling 'drained'?" | Post-Usage Affect | Blocking Strategy |
-| 9 | "How long is your ideal 'Deep Work' silence?" | Focus Goal | Timeout Duration |
-| 10| "When you are stressed, is your phone a way to **escape** the feeling or a way to **resolve** the problem?" | **Avoidance Behavior:** Distinguishes between productive use and emotional numbing. | Avoidance Baseline |
+| 1 | "When you pick up your phone, how often do you know exactly why you unlocked it?" | Conscious vs. Unconscious Intent | Baseline Calibration |
+| 2 | "How soon after waking up do you usually check social media, news, or emails?" | Morning Cortisol Spike / Reactive Start | 🌅 **The Morning Scroller** |
+| 3 | "Do you find yourself endlessly scrolling in bed, knowing you should be sleeping?" | Revenge Bedtime Procrastination | 🌙 **The Evening Escapist** |
+| 4 | "Around 2-3 PM, do you reach for short-form video to fight off a drop in energy?" | Circadian Energy Crash & Dopamine Relief | ☕ **The Midday Slumper** |
+| 5 | "If you face a difficult or boring task, does your app-switching suddenly increase?" | Avoidance Coping Mechanism | 🏃 **The Task Avoidant** |
+| 6 | "How often do you unlock your phone in an elevator or line, purely out of muscle memory?" | Unconscious Habit Loop & Muscle Memory | 👻 **The Phantom Checker** |
+| 7 | "When a notification pops up, how hard is it for you to ignore it and keep working?" | Boundary Setting & Stimulus Reactivity | 🔔 **The Notification Reactive** |
+| 8 | "Do you ever read negative news or endless feeds until you feel tense or 'zoned out'?" | Anxiety-Seeking & Trance State | 🌀 **The Doomscroller** |
+| 9 | "After using specific apps, do you frequently feel drained, envious, or 'less than'?" | Emotional Dysregulation & FOMO | ⚖️ **The Social Comparer** |
+| 10| "If we could help you reclaim one thing, would you choose 'More Focus', 'Better Sleep', or 'Less Anxiety'?" | Primary Motivational Goal | Overall Intervention Routing |
 
 ---
 
-## 6. Predictive Overload Scenarios & Interventions
-To avoid legal/compliance issues, we use **Behavioral Reporting** rather than clinical diagnosis.
+## Step 2: The Intention Zone Card
+**Details:**
+At the end of the quiz, the app synthesizes the data and presents the user with their primary **Intention Zone Profile Card**. This categorization drives the predictive model and personalization strategy moving forward.
+
+### Category 1: Time-Bound Profiles
+*   🌙 **The Evening Escapist:** Highly intentional during the day, but uses the phone to "numb out" after 8 PM. *Strategy:* High-friction interventions triggered automatically in the evening.
+*   🌅 **The Morning Scroller:** Wakes up and immediately checks feeds, spiking cortisol. *Strategy:* Enforces a strict "Morning Buffer Zone."
+*   ☕ **The Midday Slumper:** Experiences a 2-3 PM energy crash and uses short-form video for dopamine. *Strategy:* Suggests physical movement during afternoon usage spikes.
+
+### Category 2: Emotion & Trigger-Bound Profiles
+*   🏃 **The Task Avoidant:** App-switching correlates with facing stressful tasks. *Strategy:* Interrupts rapid switching during "Focus Hours" with CBT prompts.
+*   👻 **The Phantom Checker:** Unlocks constantly out of muscle memory. *Strategy:* Mandatory 3-second breathing delay on trigger apps.
+*   🔔 **The Notification Reactive:** Derails from a single ping. *Strategy:* Limits post-notification sessions to 60 seconds.
+*   🌀 **The Doomscroller:** Endlessly scrolls to numb anxiety, entering a "dissociative state." *Strategy:* Strong somatic pattern interrupts to break the trance.
+*   ⚖️ **The Social Comparer:** Usage on specific platforms triggers FOMO. *Strategy:* Strictly caps session duration followed by emotional validation.
+
+---
+
+## Step 3: App Configuration Section
+**Details:**
+Based on the Intention Card, the user sets up their specific boundaries using a tiered intervention system.
+
+*   **Disengage (The Nudge):** For useful but slippery apps (e.g., WhatsApp). Uses gentle prompts or grayscale filters.
+*   **Block (The Wall):** For purely "Emotional Distraction" apps (e.g., Facebook, TikTok). Requires a full 1-minute somatic reset to "unlock."
+*   **Utility Exceptions:** Essential apps like Banking, Maps, or Calculator are excluded from blocking or monitoring.
+
+---
+
+## Step 4: Consent to the User
+**Details:**
+ScreenBalance requires deep system access (Screen Time API / Accessibility Services) to detect "frantic switching." This step frames consent around **nervous system protection** rather than traditional "tracking."
+
+*   **Destigmatized Language:** *"We need permission to detect when your screen activity becomes frantic. We don't read your messages; we only monitor the pace of your app switching to protect your focus and calm."*
+*   **Clear Privacy Promise:** Emphasizes that all behavioral analysis happens locally on the device, ensuring absolute privacy.
+
+---
+
+## Step 5: Screen Intervention & Scenario Notification
+**Details:**
+When the AI detects a "Frantic" or "Overload" state in the background (e.g., 5+ app switches in under 15 seconds, or 20+ minutes of continuous scrolling), it triggers an immediate intervention.
 
 | Scenario | Behavioral Trigger | Suggested Notification Message | Somatic/CBT Intervention |
 | :--- | :--- | :--- | :--- |
@@ -75,101 +84,20 @@ To avoid legal/compliance issues, we use **Behavioral Reporting** rather than cl
 | **Info Overload** | 5+ news/high-intensity apps in 15 mins. | "You're processing a lot of high-intensity info. This can trigger a 'threat detection' state. Let's find some calm." | **The Cold Reset:** Splash some cold water on your face or hold a cold object for 30 seconds to calm the Vagus nerve. |
 | **Interaction Spike**| Rapid scrolling speed (px/sec) doubling. | "Your scrolling speed has increased. This often happens when the nervous system is revving up. Ready to slow down?" | **The Weighted Reset:** Sit down and press your feet firmly into the floor, feeling the support of the ground for 60 seconds. |
 
----
-
-## 7. Technical Algorithm: Detecting "Frantic Switching"
-The AI categorizes user states based on a rolling **3-minute window**.
-
-1.  **Zone 1: Flow (Intended)**
-    *   *Data:* 1-2 apps, Dwell time >2 minutes.
-    *   *Action:* No intervention.
-2.  **Zone 2: Shallow (Warning)**
-    *   *Data:* 3-4 apps, Dwell time 30-60 seconds.
-    *   *Action:* Log as "Rising Stimulation."
-3.  **Zone 3: Frantic (Intervention)**
-    *   *Data:* 5+ switches, Dwell time <15 seconds, Looping detected.
-    *   *Action:* Trigger: *"You're moving fast. Want to find your focus?"*
-
-### Utility Exceptions
-If the switch involves a "Utility" app (Bank, Calculator, Settings) and ends within 30 seconds, it is ignored by the Frantic Score.
+**The "Nervous System Reset" UI:**
+Clicking the notification takes the user to an immersive, dark-mode screen featuring a pulsating "Glow Orb" with haptic feedback (like a soft heartbeat) to guide their breathing and provide a single, minimalist instruction.
 
 ---
 
-## 8. Next Steps
-- [x] Define the initial onboarding flow.
-- [x] Draft specific questions for the 10-item Onboarding Quiz.
-- [x] Map predictive scenarios to compliant notification messages.
-- [x] Define the technical metrics for "frantic app switching".
-- [x] Draft the UI/UX for the "Nervous System Reset" screen.
-- [x] Define the Post-Reset Validation logic (3-image selection).
-- [ ] Define the specific "Somatic Exercises" for the reset (Breathing, 5-4-3-2-1 technique).
-- [ ] Establish the 7-day "Learning Phase" for baseline calibration.
+## Step 6: Post-Reset Validation
+**Details:**
+Once the 60-second somatic intervention is complete, the app asks the user if they want to perform a quick visual mood check to validate their regulated state.
 
----
+*   **If YES (The Visual Mood Check):**
+    The user is shown three dynamic images of varying "Entropy Levels" (e.g., a quiet library vs. a chaotic marathon). 
+    *   *Low Entropy Choice:* User is seeking stillness. (Prediction: Reset Complete & Regulated).
+    *   *High Entropy Choice:* User is still seeking high-input. (Prediction: Still in "Seeking/Dysregulated" mode, suggest a further break or walk).
+*   **If NO (Motivational Support):**
+    If the user skips the visual check, they are shown a highly relevant, compassionate quote based on their Intention Card. 
+    *   *Example (For The Task Avoidant):* "The hardest part is starting. You are capable of doing difficult things. Take one small step."
 
-## 9. UI/UX Design: The "Nervous System Reset" Screen
-
-When the app detects a "Frantic" or "Overload" state, the user clicks the notification and is immediately taken to an **Immersive Reset Environment**. The goal is to block out all other digital noise and ground the user.
-
-### The Visual Design Philosophy
-*   **Immersive Glassmorphism:** Using soft, blurred layers to create depth without visual clutter.
-*   **Dark Mode by Default:** To reduce eye strain and lower the user's arousal levels.
-*   **The Pulsating Orb:** A central glowing element that guides the user's attention.
-
-![Nervous System Reset UI Mockup](file:///C:/Users/Auxilia/.gemini/antigravity/brain/78a5d008-6fb8-47f5-bb6c-ec9c33a25fea/nervous_system_reset_ui_1778497826842.png)
-
-### Key UI Components
-
-1.  **The Glow Orb:**
-    *   **Behavior:** Gently expands and contracts.
-    *   **Purpose:** Serves as a "point of focus." For the **Sky Reset**, the orb might slowly drift upwards, encouraging the user to tilt their head back.
-2.  **Haptic Pacing:**
-    *   **Behavior:** Subtle "taptic" pulses (like a soft heartbeat).
-    *   **Purpose:** Connects the digital experience to the user's physical body.
-3.  **Minimalist Instruction:**
-    *   **Behavior:** One line of text at a time (e.g., *"Find 5 blue objects..."*).
-    *   **Purpose:** Reduces cognitive load by giving only one simple task.
-4.  **The "Perspective Restored" Finish:**
-    *   **Behavior:** A final gentle fade to a summary screen.
-    *   **Purpose:** Provides a sense of completion and "closes the loop" on the stress event.
-
----
-
-## 11. Post-Reset Validation: The Visual Mood Check
-
-Once the 60-second reset is complete, the app performs a **non-verbal mood check** using dynamic image sets to ensure the user is regulated.
-
-### Dynamic "Projective Selection" Sets
-The images are never the same. The app rotates between three main themes to capture different facets of the user's mental state:
-
-| Theme | Calm / Grounded (Zone A) | Analytical / Balanced (Zone B) | High-Stimulation (Zone C) |
-| :--- | :--- | :--- | :--- |
-| **Daily Activities** | Someone sipping tea by a window. | Someone neatly organizing a bookshelf. | A crowded marathon finish line. |
-| **Fine Art** | Soft Impressionism (e.g., Monet’s Lilies). | Structured Geometry (e.g., Cubist architecture). | Chaotic Action Painting (e.g., Pollock splatters). |
-| **Workspace** | A clean, minimalist desk with one plant. | A library table with a single open book. | A multi-monitor setup with many open tabs. |
-
-### The Prediction Engine
-The AI analyzes the **Entropy Level** of the chosen image:
-
-1.  **Low Entropy (Zone A):** If the user chooses the tea, the lilies, or the clean desk, their nervous system is seeking **Stillness**. 
-    *   *Prediction:* Reset Complete.
-2.  **Medium Entropy (Zone B):** If they choose organizing or the library, they are seeking **Order**. 
-    *   *Prediction:* Ready to Focus.
-3.  **High Entropy (Zone C):** If they choose the marathon, the splatters, or the messy desk, they are still seeking **High-Input**. 
-    *   *Prediction:* Still in "Seeking" mode. Suggest a 30s somatic "Sky Reset."
-
-### Why varied images matter:
-*   **Preventing "Gaming" the System:** If the user sees the same forest every time, they will click it just to get out. Varied paintings and scenes force an honest, subconscious choice.
-*   **Activity Mirroring:** If a user consistently chooses "Work" images over "Art" images, the app learns their baseline is more productivity-focused and adjusts the "Nudge" frequency accordingly.
-## 10. The 3-Step User Journey
-
-The core experience is structured into three clear phases:
-
-*   **Step 1: The Personal Awareness Quiz**
-    A 10-question quiz designed to understand the user's regular patterns, mapping goals to specific metrics (The Intention Baseline).
-*   **Step 2: App Configuration & Settings**
-    User configures their digital boundaries:
-    - **Disengage:** Set timeouts for apps like WhatsApp, Instagram, and Twitter.
-    - **Block:** Establish hard walls for apps like YouTube and Facebook.
-*   **Step 3: Proactive Intervention**
-    When the predictive algorithm detects a stress-state or "frantic" behavior, the app triggers a notification. Upon clicking, the user is guided through a **Somatic/CBT Intervention** (e.g., The Glow Orb, 4-7-8 Breathing) to regulate their nervous system before returning to their digital life.

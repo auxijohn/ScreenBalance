@@ -430,6 +430,53 @@ main {
     line-height: 1.5;
 }
 
+/* Tiered Settings (Step 3) */
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.setting-tier {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.5rem;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.setting-tier:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.setting-tier h3 {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.setting-tier.disengage h3 { color: var(--accent-teal); }
+.setting-tier.block h3 { color: #ffab00; }
+.setting-tier.utility h3 { color: var(--accent-indigo); }
+
+.setting-tier p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.app-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
 .app-chip {
     display: inline-flex;
     align-items: center;
@@ -536,4 +583,109 @@ main {
     font-size: 0.85rem;
     color: var(--text-secondary);
     line-height: 1.4;
+}
+
+/* Intention Card Styles */
+.intention-card {
+    text-align: center;
+    padding: 4rem 3rem;
+}
+
+.intention-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 20px var(--glow-color));
+    animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.intention-card h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #fff, var(--accent-teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.insight-text {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+    padding: 0 1rem;
+}
+
+.strategy-box {
+    background: linear-gradient(145deg, rgba(79, 209, 197, 0.1), rgba(79, 209, 197, 0.02));
+    border: 1px solid rgba(79, 209, 197, 0.3);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 0 20px rgba(79, 209, 197, 0.05);
+}
+
+.strategy-box h3 {
+    color: var(--accent-teal);
+    font-size: 1.2rem;
+}
+
+.strategy-box p {
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+/* Entropy Grid (Step 6) */
+.entropy-grid {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.entropy-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.entropy-card:hover {
+    transform: scale(1.05);
+}
+
+.entropy-img {
+    width: 120px;
+    height: 160px;
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    border: 2px solid rgba(255,255,255,0.1);
+    background: #222;
+}
+
+.entropy-card:hover .entropy-img {
+    border-color: var(--accent-teal);
+    box-shadow: 0 0 20px var(--glow-color);
+}
+
+.entropy-img.low {
+    background: linear-gradient(180deg, #1a2a6c, #b21f1f, #fdbb2d); /* Quiet Sunset */
+    opacity: 0.6;
+}
+
+.entropy-img.med {
+    background: linear-gradient(45deg, #3a1c71, #d76d77, #ffaf7b); /* City Lights */
+}
+
+.entropy-img.high {
+    background: repeating-conic-gradient(from 0deg, #000 0deg 30deg, #fff 30deg 60deg); /* High Contrast Pattern */
+}
+
+.entropy-card span {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
 }
