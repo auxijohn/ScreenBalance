@@ -1,12 +1,12 @@
 # ScreenBalance: User Journey & Flow Architecture
 
-This document outlines the step-by-step user journey for ScreenBalance, transitioning users from standard screen time tracking to proactive, predictive psychological wellbeing.
+This document outlines the step-by-step user journey for ScreenBalance, transitioning users from standard screen time tracking to proactive, predictive psychological wellbeing using a modular, event-driven architecture.
 
 ---
 
-## Step 1: The 1-Minute Personal Awareness Quiz
+## Step 1: Identity & The 1-Minute Personal Awareness Quiz
 **Details:**
-The onboarding process begins with a quiz designed to establish the user's "Intentional vs. Emotional" baseline. Rather than just asking what apps they want to block, we map their goals to psychological metrics to identify the root cause of their digital overload.
+The onboarding process begins with user profile creation and a quiz designed to establish the user's "Intentional vs. Emotional" baseline. We map their goals to psychological metrics to identify the root cause of their digital overload.
 
 | # | Question | Psychological Connection | Intention Zone Target |
 | :--- | :--- | :--- | :--- |
@@ -25,35 +25,42 @@ The onboarding process begins with a quiz designed to establish the user's "Inte
 
 ## Step 2: The Intention Zone Card
 **Details:**
-At the end of the quiz, the app synthesizes the data and presents the user with their primary **Intention Zone Profile Card**. This categorization drives the predictive model and personalization strategy moving forward.
+At the end of the quiz, the app synthesizes the data and attaches the primary **Intention Zone Profile Card** to the user's profile.
 
 ### Category 1: Time-Bound Profiles
-*   🌙 **The Evening Escapist:** Highly intentional during the day, but uses the phone to "numb out" after 8 PM. *Strategy:* High-friction interventions triggered automatically in the evening.
-*   🌅 **The Morning Scroller:** Wakes up and immediately checks feeds, spiking cortisol. *Strategy:* Enforces a strict "Morning Buffer Zone."
-*   ☕ **The Midday Slumper:** Experiences a 2-3 PM energy crash and uses short-form video for dopamine. *Strategy:* Suggests physical movement during afternoon usage spikes.
+*   🌙 **The Evening Escapist:** Highly intentional during the day, but uses the phone to "numb out" after 8 PM.
+*   🌅 **The Morning Scroller:** Wakes up and immediately checks feeds, spiking cortisol.
+*   ☕ **The Midday Slumper:** Experiences a 2-3 PM energy crash and uses short-form video for dopamine.
 
 ### Category 2: Emotion & Trigger-Bound Profiles
-*   🏃 **The Task Avoidant:** App-switching correlates with facing stressful tasks. *Strategy:* Interrupts rapid switching during "Focus Hours" with CBT prompts.
-*   👻 **The Phantom Checker:** Unlocks constantly out of muscle memory. *Strategy:* Mandatory 3-second breathing delay on trigger apps.
-*   🔔 **The Notification Reactive:** Derails from a single ping. *Strategy:* Limits post-notification sessions to 60 seconds.
-*   🌀 **The Doomscroller:** Endlessly scrolls to numb anxiety, entering a "dissociative state." *Strategy:* Strong somatic pattern interrupts to break the trance.
-*   ⚖️ **The Social Comparer:** Usage on specific platforms triggers FOMO. *Strategy:* Strictly caps session duration followed by emotional validation.
+*   🏃 **The Task Avoidant:** App-switching correlates with facing stressful tasks.
+*   👻 **The Phantom Checker:** Unlocks constantly out of muscle memory.
+*   🔔 **The Notification Reactive:** Derails from a single ping.
+*   🌀 **The Doomscroller:** Endlessly scrolls to numb anxiety, entering a "dissociative state."
+*   ⚖️ **The Social Comparer:** Usage on specific platforms triggers FOMO.
 
 ---
 
-## Step 3: App Configuration Section
+## Step 3: App Configuration & Contextual Boundaries
 **Details:**
-Based on the Intention Card, the user sets up their specific boundaries using a tiered intervention system.
+Based on the Intention Card, the user sets up their specific boundaries using a tiered categorization and schedule system.
 
-*   **Disengage (The Nudge):** For useful but slippery apps (e.g., WhatsApp). Uses gentle prompts or grayscale filters.
-*   **Block (The Wall):** For purely "Emotional Distraction" apps (e.g., Facebook, TikTok). Requires a full 1-minute somatic reset to "unlock."
-*   **Utility Exceptions:** Essential apps like Banking, Maps, or Calculator are excluded from blocking or monitoring.
+**Smart App Categorization:**
+*   **Utility (Exempt):** Essential apps like Banking, Maps, or Calculator.
+*   **Social (Disengage):** For useful but slippery apps (e.g., WhatsApp). Uses gentle prompts or grayscale filters.
+*   **Emotional Distraction (Block):** Pure distraction (e.g., Facebook, TikTok). Requires a full 1-minute somatic reset to "unlock."
+*   **Productivity:** Monitor only (e.g., Slack).
+
+**Contextual Schedules (Overrides):**
+*   **Target Bedtime:** Sets the anchor for the Staged Digital Sunset.
+*   **Focus Mode Hours:** Stricter tracking during deep work.
+*   **Morning Buffer:** 30-min block on social apps after waking.
 
 ---
 
 ## Step 4: Consent to the User
 **Details:**
-ScreenBalance requires deep system access (Screen Time API / Accessibility Services) to detect "frantic switching." This step frames consent around **nervous system protection** rather than traditional "tracking."
+ScreenBalance requires deep system access (Screen Time API / Accessibility Services) to detect "frantic switching." This step frames consent around **nervous system protection**.
 
 *   **Destigmatized Language:** *"We need permission to detect when your screen activity becomes frantic. We don't read your messages; we only monitor the pace of your app switching to protect your focus and calm."*
 *   **Clear Privacy Promise:** Emphasizes that all behavioral analysis happens locally on the device, ensuring absolute privacy.
@@ -62,7 +69,7 @@ ScreenBalance requires deep system access (Screen Time API / Accessibility Servi
 
 ## Step 5: Screen Intervention & Scenario Notification
 **Details:**
-When the AI detects a "Frantic" or "Overload" state in the background (e.g., 5+ app switches in under 15 seconds, or 20+ minutes of continuous scrolling), it triggers an immediate intervention.
+When the background engine detects a threshold event, the logic engine evaluates it against contextual overrides (like Digital Sunset) and routes a specific, compassionate intervention.
 
 | Scenario | Behavioral Trigger | Suggested Notification Message | Somatic/CBT Intervention |
 | :--- | :--- | :--- | :--- |
@@ -73,6 +80,7 @@ When the AI detects a "Frantic" or "Overload" state in the background (e.g., 5+ 
 | **SOCIAL THEME** | | | |
 | **Social Spiral** | 10+ rapid profile views on Social apps. | "You're looking at a lot of social profiles. This can sometimes trigger subconscious comparison stress. Shall we ground ourselves?" | **The Heart-Hand Grounding:** Place one hand on your heart and one on your belly. Feel your own breath for 30 seconds. |
 | **Ghosting Anxiety**| Typing >100 chars, deleting all, and closing. | "It looks like you're hesitating on a message. Overthinking can build social tension. Let's take a breath before deciding." | **The 4-7-8 Breath:** Inhale for 4s, hold for 7s, exhale for 8s to calm the nervous system. |
+| **Upward Comparison Risk**| Prolonged passive scrolling on Image/Video Social apps. | "Notice how this content is making you feel. Can we reframe this comparison into curiosity?" | **Social Savoring Reframe:** A micro-prompt exercise to actively shift from FOMO to positive appreciation. |
 | **REST THEME** | | | |
 | **Midnight Drift** | Usage 1 hour past Sleep Goal. | "It's past your quiet hour. Late-night light can trick your brain into staying 'alert' when it needs rest." | **Tactile Grounding:** Put your phone down and touch 3 different textures (e.g., a cold table, a soft pillow, your own palms). |
 | **Last Scroll Loop**| 3+ Lock/Unlock cycles in <2 mins at night. | "You're trying to put the phone away, but the pull is strong. This 'last scroll' loop delays deep rest." | **The Darkroom Reset:** Put the phone in a drawer, turn off the lights, and sit in silence for 60 seconds. |
@@ -84,20 +92,34 @@ When the AI detects a "Frantic" or "Overload" state in the background (e.g., 5+ 
 | **Info Overload** | 5+ news/high-intensity apps in 15 mins. | "You're processing a lot of high-intensity info. This can trigger a 'threat detection' state. Let's find some calm." | **The Cold Reset:** Splash some cold water on your face or hold a cold object for 30 seconds to calm the Vagus nerve. |
 | **Interaction Spike**| Rapid scrolling speed (px/sec) doubling. | "Your scrolling speed has increased. This often happens when the nervous system is revving up. Ready to slow down?" | **The Weighted Reset:** Sit down and press your feet firmly into the floor, feeling the support of the ground for 60 seconds. |
 
+**Contextual Schedules Execution:**
+*   **Staged Digital Sunset:** At T-90 min from bedtime, Emotional Distraction apps are blocked. At T-60, high-intensity apps block and social apps turn grayscale. At T-30, dark mode enforces. At T-0, screen locks.
+*   **Morning Buffer:** First 30 mins after waking routes users to an intention micro-prompt instead of social apps.
+
 **The "Nervous System Reset" UI:**
-Clicking the notification takes the user to an immersive, dark-mode screen featuring a pulsating "Glow Orb" with haptic feedback (like a soft heartbeat) to guide their breathing and provide a single, minimalist instruction.
+Clicking the notification takes the user to an immersive, dark-mode screen featuring a pulsating "Glow Orb" with haptic feedback to guide their breathing.
 
 ---
 
 ## Step 6: Post-Reset Validation
 **Details:**
-Once the 60-second somatic intervention is complete, the app asks the user if they want to perform a quick visual mood check to validate their regulated state.
+Once the 60-second somatic intervention is complete, the app performs a visual mood check.
+*   **The Visual Mood Check:** The user is shown three dynamic images of varying "Entropy Levels". 
+    *   *Low Entropy Choice:* User is seeking stillness. (Reset Complete).
+    *   *High Entropy Choice:* User is still seeking high-input. (Suggest a further break).
 
-*   **If YES (The Visual Mood Check):**
-    The user is shown three dynamic images of varying "Entropy Levels" (e.g., a quiet library vs. a chaotic marathon). 
-    *   *Low Entropy Choice:* User is seeking stillness. (Prediction: Reset Complete & Regulated).
-    *   *High Entropy Choice:* User is still seeking high-input. (Prediction: Still in "Seeking/Dysregulated" mode, suggest a further break or walk).
-*   **If NO (Motivational Support):**
-    If the user skips the visual check, they are shown a highly relevant, compassionate quote based on their Intention Card. 
-    *   *Example (For The Task Avoidant):* "The hardest part is starting. You are capable of doing difficult things. Take one small step."
+---
 
+## Step 7: Insights & Circadian Dashboards
+**Details:**
+Users can view read-only dashboards aggregating their behavioral history to foster self-awareness.
+*   **Circadian Pattern Dashboard:** Shows average sleep/wake times, Last Scroll frequency, and weekly sleep quality trends.
+*   **Zone Balance:** Displays how often they are in Flow, Shallow, or Frantic modes.
+
+---
+
+## Step 8: Adaptive Evolution & Accountability
+**Details:**
+ScreenBalance adapts over time and leverages community support.
+*   **Adaptive Behavior Engine:** Every 7 days, the app reviews behavioral history and dynamically updates the user's Intention Card (e.g., shifting from Morning Scroller to Doomscroller) if habits change, alerting both the user and their partner.
+*   **External Notification Dispatcher:** Real-time intervention triggers and weekly profile updates are instantly mirrored to a configured accountability partner via Push/SMS to support habit change.
