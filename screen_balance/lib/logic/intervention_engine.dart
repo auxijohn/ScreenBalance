@@ -1,0 +1,497 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import '../models/boundary_settings.dart';
+import 'native_tracker.dart';
+
+class BehavioralEvent {
+  final DateTime timestamp;
+  final String eventType;
+  final String detail;
+
+  BehavioralEvent({
+    required this.timestamp,
+    required this.eventType,
+    required this.detail,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'timestamp': timestamp.toIso8601String(),
+        'eventType': eventType,
+        'detail': detail,
+      };
+}
+
+class InterventionEngine {
+  static final InterventionEngine _instance = InterventionEngine._internal();
+  factory InterventionEngine() => _instance;
+  InterventionEngine._internal();
+
+  // Telemetry lists
+  final List<DateTime> _recentAppOpens = [];
+  final List<DateTime> _recentUnlocks = [];
+  final List<DateTime> _recentLocks = [];
+  final List<String> _openedAppsInTenMins = [];
+  final List<DateTime> _shoppingAppOpens = [];
+  final List<DateTime> _newsAppOpens = [];
+  
+  // Decoupled Behavioral History datastore
+  final List<BehavioralEvent> behavioralHistory = [];
+  
+  // State variables
+  DateTime? _simulatedTimeOverride;
+  bool _somaticResetCompletedOverride = false;
+  DateTime? _firstMorningUnlockTime;
+  int _unlockCountToday = 0;
+
+  // Stream to tell the UI to show an overlay
+  final StreamController<Map<String, String>> interventionStream = StreamController.broadcast();
+
+  // Stream to notify subscribers of profile updates (Module 8/9/10)
+  final StreamController<String> eventBusStream = StreamController.broadcast();
+
+  void startListening() {
+    NativeTracker.initialize();
+    NativeTracker.appOpenStream.stream.listen((packageName) {
+      processAppOpen(packageName);
+    });
+  }
+
+  void setSimulatedTime(DateTime? time) {
+    _simulatedTimeOverride = time;
+  }
+
+  DateTime getCurrentTime() {
+    return _simulatedTimeOverride ?? DateTime.now();
+  }
+
+  void completeSomaticReset() {
+    _somaticResetCompletedOverride = true;
+    logEvent("Somatic Reset Completed", "One-time override granted");
+    eventBusStream.add("EVENT_INTERVENTION_COMPLETED");
+  }
+
+  void clearSomaticOverride() {
+    _somaticResetCompletedOverride = false;
+  }
+
+  void logEvent(String eventType, String detail) {
+    final event = BehavioralEvent(
+      timestamp: getCurrentTime(),
+      eventType: eventType,
+      detail: detail,
+    );
+    behavioralHistory.add(event);
+    debugPrint("Logged Event: $eventType - $detail");
+    eventBusStream.add("EVENT_NEW_LOGGED_EVENT");
+  }
+
+  Future<void> processAppOpen(String packageName) async {
+    if (packageName.contains('launcher') || packageName.contains('systemui') || packageName == 'com.example.screen_balance') {
+      return;
+    }
+
+    final now = getCurrentTime();
+    final settings = await BoundarySettings.loadFromStorage();
+
+    // Look up category
+    String category = 'Social';
+    settings.categorizedApps.forEach((key, list) {
+      if (list.contains(packageName)) {
+        category = key;
+      }
+    });
+
+    logEvent("App Open", "$packageName ($category)");
+
+    if (category == 'Utility') {
+      debugPrint("InterventionEngine: $packageName is Utility. Exempt.");
+      return;
+    }
+
+    // Check One-Time Somatic Bypass
+    if (_somaticResetCompletedOverride) {
+      debugPrint("InterventionEngine: Somatic bypass active. Bypassing check.");
+      _somaticResetCompletedOverride = false; // consume it
+      return;
+    }
+
+    // 1. Morning Mindfulness Buffer Check
+    if (_firstMorningUnlockTime != null && category == 'Social') {
+      final diff = now.difference(_firstMorningUnlockTime!).inMinutes;
+      if (diff < settings.morningBufferMinutes) {
+        _triggerIntervention(
+          title: "Morning Mindfulness Buffer",
+          message: "You're in your morning phone-free buffer zone. Let's start the day with intention instead of feeds.",
+          somaticReset: "Somatic Release: Roll your shoulders back 5 times and take one slow, deep breath with your eyes closed.",
+          triggerId: "morning_buffer",
+        );
+        return;
+      }
+    }
+
+    // 2. Staged Digital Sunset Checks (relative to targetBedtime)
+    if (settings.targetBedtime != null) {
+      final bedtime = settings.targetBedtime!;
+      final minutesToBedtime = _getMinutesToBedtime(now, bedtime);
+
+      if (minutesToBedtime <= 0) {
+        // T-0: Enforce lock, only utility apps allowed
+        _triggerIntervention(
+          title: "Bedtime Screen Lock",
+          message: "It is past your Target Bedtime. Sleep is vital for cognitive repair.",
+          somaticReset: "The Darkroom Reset: Put the phone in a drawer, turn off the lights, and sit in silence for 60 seconds.",
+          triggerId: "staged_sunset_t0",
+        );
+        return;
+      } else if (minutesToBedtime <= 30) {
+        // T-30: Only utility available
+        if (category != 'Utility') {
+          _triggerIntervention(
+            title: "Digital Sunset (T-30 min)",
+            message: "Bedtime is in 30 minutes. Let's disconnect now to ease the mind into deep rest.",
+            somaticReset: "Tactile Grounding: Put your phone down and touch 3 different textures.",
+            triggerId: "staged_sunset_t30",
+          );
+          return;
+        }
+      } else if (minutesToBedtime <= 60) {
+        // T-60: Block high intensity, apply grayscale
+        if (category == 'Social' || category == 'Emotional Distraction' || category == 'Entertainment') {
+          _triggerIntervention(
+            title: "Digital Sunset (T-60 min)",
+            message: "One hour until sleep. Your brain needs to wind down from screen stimulation.",
+            somaticReset: "The Horizon View: Look out a window at the furthest point for 60 seconds.",
+            triggerId: "staged_sunset_t60",
+          );
+          return;
+        }
+      } else if (minutesToBedtime <= 90) {
+        // T-90: Block Emotional Distraction
+        if (category == 'Emotional Distraction') {
+          _triggerIntervention(
+            title: "Digital Sunset (T-90 min)",
+            message: "Entering the digital sunset. Emotional distraction apps are now offline to protect your sleep quality.",
+            somaticReset: "Social Savoring Reframe: Think of one thing you are grateful for today.",
+            triggerId: "staged_sunset_t90",
+          );
+          return;
+        }
+      }
+    }
+
+    // 3. Focus Mode Hours Check
+    if (category == 'Productivity') {
+      final start = settings.focusStartTime ?? const TimeOfDay(hour: 9, minute: 0);
+      final end = settings.focusEndTime ?? const TimeOfDay(hour: 17, minute: 0);
+      if (_isOutsideFocusHours(now, start, end)) {
+        _triggerIntervention(
+          title: "Work-Life Blur",
+          message: "Checking work apps now can prevent your brain from fully decompressing. Is this urgent?",
+          somaticReset: "The Physical Boundary: Walk to a different room or stand up and do a full-body stretch.",
+          triggerId: "work_life_blur",
+        );
+        return;
+      }
+    }
+
+    // 4. Midnight Drift Rule
+    if (settings.targetBedtime != null && _isPastBedtime(now, settings.targetBedtime!)) {
+      if (category == 'Social' || category == 'Entertainment' || category == 'Emotional Distraction') {
+        _triggerIntervention(
+          title: "Midnight Drift",
+          message: "It's past your quiet hour. Late-night light can trick your brain into staying alert when it needs rest.",
+          somaticReset: "Tactile Grounding: Put your phone down and touch 3 different textures.",
+          triggerId: "midnight_drift",
+        );
+        return;
+      }
+    }
+
+    // 5. Dopamine Loop Rule
+    _recentAppOpens.add(now);
+    _recentAppOpens.removeWhere((timestamp) => now.difference(timestamp).inSeconds > 60);
+    if (_recentAppOpens.length >= 3) {
+      _triggerIntervention(
+        title: "Dopamine Loop",
+        message: "You're moving fast between apps. This rapid switching can fragment your focus. Ready for a quick reset?",
+        somaticReset: "The Sky Reset: Step outside (or near a window), tilt your face toward the sky, and close your eyes for 60 seconds.",
+        triggerId: "dopamine_loop",
+      );
+      _recentAppOpens.clear();
+      return;
+    }
+
+    // 6. Reactive Mode
+    _openedAppsInTenMins.add(packageName);
+    if (_openedAppsInTenMins.length >= 5) {
+      _triggerIntervention(
+        title: "Reactive Mode",
+        message: "You're reacting to pings as they come. This high-alert mode increases cognitive load. Want to take back control?",
+        somaticReset: "The Horizon View: Stand up and look at the furthest point you can see out a window for 60 seconds.",
+        triggerId: "reactive_mode",
+      );
+      _openedAppsInTenMins.clear();
+      return;
+    }
+
+    // 7. Novelty Hunt
+    if (category == 'Entertainment') {
+      _shoppingAppOpens.add(now);
+      _shoppingAppOpens.removeWhere((t) => now.difference(t).inMinutes > 10);
+      if (_shoppingAppOpens.length >= 5) {
+        _triggerIntervention(
+          title: "Novelty Hunt",
+          message: "You're searching for something new. This novelty hunt can be a sign of underlying restlessness.",
+          somaticReset: "The Sensory Swap: Find a physical object near you and notice its weight and temperature for 60 seconds.",
+          triggerId: "novelty_hunt",
+        );
+        _shoppingAppOpens.clear();
+        return;
+      }
+    }
+
+    // 8. Info Overload
+    if (category == 'Social') {
+      _newsAppOpens.add(now);
+      _newsAppOpens.removeWhere((t) => now.difference(t).inMinutes > 15);
+      if (_newsAppOpens.length >= 5) {
+        _triggerIntervention(
+          title: "Info Overload",
+          message: "You're processing a lot of high-intensity info. Let's find some calm.",
+          somaticReset: "The Cold Reset: Splash some cold water on your face or hold a cold object for 30 seconds.",
+          triggerId: "info_overload",
+        );
+        _newsAppOpens.clear();
+        return;
+      }
+    }
+  }
+
+  Future<void> processDeviceUnlock() async {
+    final now = getCurrentTime();
+    final settings = await BoundarySettings.loadFromStorage();
+    
+    _unlockCountToday++;
+    logEvent("Device Unlock", "Total today: $_unlockCountToday");
+
+    // Morning check
+    if (now.hour >= 5 && now.hour < 11 && _firstMorningUnlockTime == null) {
+      _firstMorningUnlockTime = now;
+      logEvent("First Morning Unlock", "Recorded at ${now.hour}:${now.minute}");
+    }
+
+    _recentUnlocks.add(now);
+    _recentUnlocks.removeWhere((timestamp) => now.difference(timestamp).inMinutes > 15);
+
+    // 1. Last Scroll Loop (3+ unlocks in 2 mins at night)
+    if (settings.targetBedtime != null && _isPastBedtime(now, settings.targetBedtime!)) {
+      final recentTwoMins = _recentUnlocks.where((t) => now.difference(t).inSeconds <= 120).toList();
+      if (recentTwoMins.length >= 3) {
+        _triggerIntervention(
+          title: "Last Scroll Loop",
+          message: "You're trying to put the phone away, but the pull is strong. This last scroll loop delays deep rest.",
+          somaticReset: "The Darkroom Reset: Put the phone in a drawer, turn off the lights, and sit in silence for 60 seconds.",
+          triggerId: "last_scroll_loop",
+        );
+        _recentUnlocks.clear();
+        return;
+      }
+    }
+
+    // 2. Phantom Check (10+ unlocks in 15 mins)
+    if (_recentUnlocks.length >= 10) {
+      _triggerIntervention(
+        title: "Phantom Check",
+        message: "You've checked in 10 times with no alerts. This phantom checking keeps your mind on high-alert.",
+        somaticReset: "Somatic Release: Roll your shoulders back 5 times and take one slow, deep breath with your eyes closed.",
+        triggerId: "phantom_check",
+      );
+      _recentUnlocks.clear();
+    }
+  }
+
+  void processDeviceLock() {
+    final now = getCurrentTime();
+    logEvent("Device Lock", "");
+    _recentLocks.add(now);
+    _recentLocks.removeWhere((timestamp) => now.difference(timestamp).inMinutes > 15);
+  }
+
+  int _getMinutesToBedtime(DateTime now, TimeOfDay bedtime) {
+    final bedMinutes = bedtime.hour * 60 + bedtime.minute;
+    final currMinutes = now.hour * 60 + now.minute;
+    
+    int diff = bedMinutes - currMinutes;
+    if (diff < -720) {
+      // Bedtime in early morning, now is late night
+      diff += 1440;
+    } else if (diff > 720) {
+      // Now is early morning, bedtime is night
+      diff -= 1440;
+    }
+    return diff;
+  }
+
+  bool _isPastBedtime(DateTime time, TimeOfDay bedtime) {
+    final bedHour = bedtime.hour;
+    final bedMin = bedtime.minute;
+    final currHour = time.hour;
+    final currMin = time.minute;
+
+    if (bedHour > 5) {
+      if (currHour >= bedHour || currHour < 5) {
+        if (currHour == bedHour) {
+          return currMin >= bedMin;
+        }
+        return true;
+      }
+    } else {
+      if (currHour >= bedHour && currHour < 5) {
+        if (currHour == bedHour) {
+          return currMin >= bedMin;
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isOutsideFocusHours(DateTime time, TimeOfDay start, TimeOfDay end) {
+    final currentMinutes = time.hour * 60 + time.minute;
+    final startMinutes = start.hour * 60 + start.minute;
+    final endMinutes = end.hour * 60 + end.minute;
+
+    if (startMinutes <= endMinutes) {
+      return currentMinutes < startMinutes || currentMinutes > endMinutes;
+    } else {
+      return currentMinutes < startMinutes && currentMinutes > endMinutes;
+    }
+  }
+
+  void _triggerIntervention({
+    required String title,
+    required String message,
+    required String somaticReset,
+    required String triggerId,
+  }) {
+    logEvent("Intervention Triggered", "$title ($triggerId)");
+    eventBusStream.add("EVENT_INTERVENTION_TRIGGERED:$triggerId");
+    
+    interventionStream.add({
+      'title': title,
+      'message': message,
+      'somaticReset': somaticReset,
+      'triggerId': triggerId,
+    });
+  }
+
+  // Debug simulation method for all 13 triggers
+  void simulateTrigger(String triggerId) {
+    switch (triggerId) {
+      case "dopamine_loop":
+        _triggerIntervention(
+          title: "Dopamine Loop",
+          message: "You're moving fast between apps. This rapid switching can fragment your focus. Ready for a quick reset?",
+          somaticReset: "The Sky Reset: Step outside (or near a window), tilt your face toward the sky, and close your eyes for 60 seconds.",
+          triggerId: triggerId,
+        );
+        break;
+      case "the_void":
+        _triggerIntervention(
+          title: "The Void",
+          message: "You've been scrolling for a while. This can create a 'mental fog.' Let's pull your awareness back to the room.",
+          somaticReset: "The 5-Object Scan: Look away from the screen and find 5 objects in the room that are the same color.",
+          triggerId: triggerId,
+        );
+        break;
+      case "reactive_mode":
+        _triggerIntervention(
+          title: "Reactive Mode",
+          message: "You're reacting to pings as they come. This high-alert mode increases cognitive load. Want to take back control?",
+          somaticReset: "The Horizon View: Stand up and look at the furthest point you can see out a window for 60 seconds to reset your visual system.",
+          triggerId: triggerId,
+        );
+        break;
+      case "social_spiral":
+        _triggerIntervention(
+          title: "Social Spiral",
+          message: "You're looking at a lot of social profiles. This can sometimes trigger subconscious comparison stress. Shall we ground ourselves?",
+          somaticReset: "The Heart-Hand Grounding: Place one hand on your heart and one on your belly. Feel your own breath for 30 seconds.",
+          triggerId: triggerId,
+        );
+        break;
+      case "ghosting_anxiety":
+        _triggerIntervention(
+          title: "Ghosting Anxiety",
+          message: "It looks like you're hesitating on a message. Overthinking can build social tension. Let's take a breath before deciding.",
+          somaticReset: "The 4-7-8 Breath: Inhale for 4s, hold for 7s, exhale for 8s to calm the nervous system.",
+          triggerId: triggerId,
+        );
+        break;
+      case "upward_comparison":
+        _triggerIntervention(
+          title: "Upward Comparison Risk",
+          message: "Notice how this content is making you feel. Can we reframe this comparison into curiosity?",
+          somaticReset: "Social Savoring Reframe: A micro-prompt exercise to actively shift from FOMO to positive appreciation.",
+          triggerId: triggerId,
+        );
+        break;
+      case "midnight_drift":
+        _triggerIntervention(
+          title: "Midnight Drift",
+          message: "It's past your quiet hour. Late-night light can trick your brain into staying 'alert' when it needs rest.",
+          somaticReset: "Tactile Grounding: Put your phone down and touch 3 different textures (e.g., a cold table, a soft pillow, your own palms).",
+          triggerId: triggerId,
+        );
+        break;
+      case "last_scroll_loop":
+        _triggerIntervention(
+          title: "Last Scroll Loop",
+          message: "You're trying to put the phone away, but the pull is strong. This 'last scroll' loop delays deep rest.",
+          somaticReset: "The Darkroom Reset: Put the phone in a drawer, turn off the lights, and sit in silence for 60 seconds.",
+          triggerId: triggerId,
+        );
+        break;
+      case "work_life_blur":
+        _triggerIntervention(
+          title: "Work-Life Blur",
+          message: "Checking work apps now can prevent your brain from fully decompressing. Is this urgent, or can it wait for 'Future You'?",
+          somaticReset: "The Physical Boundary: Walk to a different room or stand up and do a full-body stretch to mark the end of 'work mode.'",
+          triggerId: triggerId,
+        );
+        break;
+      case "phantom_check":
+        _triggerIntervention(
+          title: "Phantom Check",
+          message: "You've checked in 10 times with no alerts. This 'phantom checking' keeps your mind on high-alert.",
+          somaticReset: "Somatic Release: Roll your shoulders back 5 times and take one slow, deep breath with your eyes closed.",
+          triggerId: triggerId,
+        );
+        break;
+      case "novelty_hunt":
+        _triggerIntervention(
+          title: "Novelty Hunt",
+          message: "You're searching for something new. This 'novelty hunt' can be a sign of underlying restlessness.",
+          somaticReset: "The Sensory Swap: Find a physical object near you (a pen, a stone, a glass) and notice its weight and temperature for 60 seconds.",
+          triggerId: triggerId,
+        );
+        break;
+      case "info_overload":
+        _triggerIntervention(
+          title: "Info Overload",
+          message: "You're processing a lot of high-intensity info. This can trigger a 'threat detection' state. Let's find some calm.",
+          somaticReset: "The Cold Reset: Splash some cold water on your face or hold a cold object for 30 seconds to calm the Vagus nerve.",
+          triggerId: triggerId,
+        );
+        break;
+      case "interaction_spike":
+        _triggerIntervention(
+          title: "Interaction Spike",
+          message: "Your scrolling speed has increased. This often happens when the nervous system is revving up. Ready to slow down?",
+          somaticReset: "The Weighted Reset: Sit down and press your feet firmly into the floor, feeling the support of the ground for 60 seconds.",
+          triggerId: triggerId,
+        );
+        break;
+    }
+  }
+}
