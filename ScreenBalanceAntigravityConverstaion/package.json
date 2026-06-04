@@ -1,0 +1,19 @@
+{
+  "name": "screenbalance",
+  "version": "1.0.0",
+  "description": "Application for Understanding your digital stress patterns",
+  "main": "index.js",
+  "scripts": {
+    "sync": "npx cap sync android",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4"
+  }
+}
