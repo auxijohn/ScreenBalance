@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">ScreenBalance</string>
-    <string name="title_activity_main">ScreenBalance</string>
-    <string name="package_name">com.auxijohn.screenbalance</string>
-    <string name="custom_url_scheme">com.auxijohn.screenbalance</string>
-</resources>
