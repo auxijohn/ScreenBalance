@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import '../models/quiz_data.dart';
 import '../logic/quiz_engine.dart';
 import '../models/user_profile.dart';
-import 'dashboard_shell.dart';
 
 class Feather {
   double x; // Horizontal percentage (0..1)
@@ -28,8 +27,13 @@ class Feather {
 
 class QuizScreen extends StatefulWidget {
   final String userName;
+  final VoidCallback onAuthenticated;
 
-  const QuizScreen({super.key, required this.userName});
+  const QuizScreen({
+    super.key,
+    required this.userName,
+    required this.onAuthenticated,
+  });
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -98,15 +102,13 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
         final profile = UserProfile(
           name: widget.userName,
           activeIntentionCard: details,
+          isCalibrated: true,
+          calibrationPath: 'quiz',
         );
         profile.saveToStorage().then((_) {
           if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DashboardShell(),
-            ),
-          );
+          widget.onAuthenticated();
+          Navigator.pop(context);
         });
       }
     });
@@ -222,127 +224,132 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
                         ),
                       );
                     },
-                    child: Padding(
+                    child: LayoutBuilder(
                       key: ValueKey<int>(_currentIndex),
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Glowing Habit Test Tag
-                           Center(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.08),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-                              ),
-                              child: Text(
-                                'DIGITAL HABIT TEST',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white.withOpacity(0.9),
-                                  letterSpacing: 1.5,
-                                ),
-                              ),
+                      builder: (context, viewportConstraints) {
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: viewportConstraints.maxHeight - 32,
                             ),
-                          ),
-                          const SizedBox(height: 24),
-                          
-                          // Question text with rich contrast
-                          Text(
-                            question.text,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1.35,
-                              letterSpacing: -0.3,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 40),
-
-                          // Interactive Option Cards (tactile glassmorphism)
-                          ...question.options.map((option) {
-                            final isSelected = _selectedOption == option;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 14.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(22),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    curve: Curves.easeOut,
-                                    decoration: BoxDecoration(
-                                      color: isSelected 
-                                          ? Colors.white
-                                          : Colors.white.withOpacity(0.85),
-                                      borderRadius: BorderRadius.circular(22),
-                                      border: Border.all(
-                                        color: isSelected 
-                                            ? Colors.white
-                                            : Colors.white.withOpacity(0.6),
-                                        width: isSelected ? 2.5 : 1.2,
+                            child: IntrinsicHeight(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // Glowing Habit Test Tag
+                                   Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
                                       ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.05),
-                                          blurRadius: 20,
-                                          offset: const Offset(0, 6),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: () => _answerQuestion(option),
-                                        borderRadius: BorderRadius.circular(22),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 22),
-                                          child: Row(
-                                            children: [
-                                              // Glowing Radio Bullet
-                                              AnimatedContainer(
-                                                duration: const Duration(milliseconds: 200),
-                                                width: 18,
-                                                height: 18,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: isSelected ? const Color(0xFF0D47A1) : Colors.blue.withOpacity(0.3),
-                                                    width: isSelected ? 5.5 : 1.5,
-                                                  ),
-                                                  color: isSelected ? Colors.white : Colors.transparent,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: Text(
-                                                  option.text,
-                                                  style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: const Color(0xFF0A192F),
-                                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                                    height: 1.3,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                      child: Text(
+                                        'DIGITAL HABIT TEST',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white.withOpacity(0.9),
+                                          letterSpacing: 1.5,
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
+                                  const SizedBox(height: 24),
+                                  
+                                  // Question text with rich contrast
+                                  Text(
+                                    question.text,
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      height: 1.35,
+                                      letterSpacing: -0.3,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 40),
+
+                                  // Interactive Option Cards (tactile glassmorphism)
+                                  ...question.options.map((option) {
+                                    final isSelected = _selectedOption == option;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 14.0),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        curve: Curves.easeOut,
+                                        decoration: BoxDecoration(
+                                          color: isSelected 
+                                              ? Colors.white
+                                              : Colors.white.withOpacity(0.92),
+                                          borderRadius: BorderRadius.circular(22),
+                                          border: Border.all(
+                                            color: isSelected 
+                                                ? Colors.white
+                                                : Colors.white.withOpacity(0.6),
+                                            width: isSelected ? 2.5 : 1.2,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.05),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 6),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: () => _answerQuestion(option),
+                                            borderRadius: BorderRadius.circular(22),
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 22),
+                                              child: Row(
+                                                children: [
+                                                  // Glowing Radio Bullet
+                                                  AnimatedContainer(
+                                                    duration: const Duration(milliseconds: 200),
+                                                    width: 18,
+                                                    height: 18,
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      border: Border.all(
+                                                        color: isSelected ? const Color(0xFF0D47A1) : Colors.blue.withOpacity(0.3),
+                                                        width: isSelected ? 5.5 : 1.5,
+                                                      ),
+                                                      color: isSelected ? Colors.white : Colors.transparent,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16),
+                                                  Expanded(
+                                                    child: Text(
+                                                      option.text,
+                                                      style: TextStyle(
+                                                        fontSize: 15,
+                                                        color: const Color(0xFF0A192F),
+                                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                                        height: 1.3,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
                               ),
-                            );
-                          }),
-                        ],
-                      ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),

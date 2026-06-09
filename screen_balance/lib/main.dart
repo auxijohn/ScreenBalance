@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'screens/auth_screen.dart';
 import 'screens/dashboard_shell.dart';
 import 'screens/intervention_overlay_screen.dart';
@@ -41,6 +42,7 @@ class _ScreenBalanceAppState extends State<ScreenBalanceApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ScreenBalance',
+      scrollBehavior: const AppScrollBehavior(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1E88E5), // Calming primary blue
@@ -54,7 +56,13 @@ class _ScreenBalanceAppState extends State<ScreenBalanceApp> {
         children: [
           // If authenticated, show shell dashboard; otherwise show auth PIN verification/signup
           _isAuthenticated
-              ? const DashboardShell()
+              ? DashboardShell(
+                  onLogout: () {
+                    setState(() {
+                      _isAuthenticated = false;
+                    });
+                  },
+                )
               : AuthScreen(
                   onAuthenticated: () {
                     setState(() {
@@ -77,4 +85,16 @@ class _ScreenBalanceAppState extends State<ScreenBalanceApp> {
       ),
     );
   }
+}
+
+class AppScrollBehavior extends MaterialScrollBehavior {
+  const AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
 }

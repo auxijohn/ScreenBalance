@@ -6,11 +6,17 @@ class UserProfile {
   String ageGroup;
   String occupation;
   Map<String, String> activeIntentionCard;
+  String calibrationPath; // 'quiz' or 'observe'
+  int observationDay; // 1 to 7
+  bool isCalibrated; // whether profile has active archetype
 
   UserProfile({
     required this.name,
     this.ageGroup = '18-24',
     this.occupation = 'Student',
+    this.calibrationPath = 'quiz',
+    this.observationDay = 1,
+    this.isCalibrated = false,
     this.activeIntentionCard = const {
       'title': 'The Intentional Seeker',
       'emoji': '🌱',
@@ -30,6 +36,9 @@ class UserProfile {
         name: decoded['name'] ?? '',
         ageGroup: decoded['ageGroup'] ?? '18-24',
         occupation: decoded['occupation'] ?? 'Student',
+        calibrationPath: decoded['calibrationPath'] ?? 'quiz',
+        observationDay: decoded['observationDay'] ?? 1,
+        isCalibrated: decoded['isCalibrated'] ?? false,
         activeIntentionCard: Map<String, String>.from(decoded['activeIntentionCard'] ?? {}),
       );
     } catch (e) {
@@ -43,6 +52,9 @@ class UserProfile {
       'name': name,
       'ageGroup': ageGroup,
       'occupation': occupation,
+      'calibrationPath': calibrationPath,
+      'observationDay': observationDay,
+      'isCalibrated': isCalibrated,
       'activeIntentionCard': activeIntentionCard,
     };
     await prefs.setString('userProfile', json.encode(data));

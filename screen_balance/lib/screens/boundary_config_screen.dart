@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:device_apps/device_apps.dart';
 import '../models/boundary_settings.dart';
 import 'tranquility_success_screen.dart';
+import 'dashboard_shell.dart';
 
 class BoundaryConfigScreen extends StatefulWidget {
   const BoundaryConfigScreen({super.key});
@@ -789,17 +790,24 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
                                         color: isBedtimeShield ? Colors.indigo : Colors.grey,
                                       ),
                                       const SizedBox(width: 8),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Text('Bedtime Shield', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0A192F))),
-                                          Text(
-                                            isBedtimeShield ? 'Blocks late' : 'No block',
-                                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                                          ),
-                                        ],
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Bedtime Shield',
+                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0A192F)),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              isBedtimeShield ? 'Blocks late' : 'No block',
+                                              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 4),
                                       Transform.scale(
                                         scale: 0.8,
                                         child: Switch(
@@ -823,17 +831,24 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
                                         color: isFocusShield ? Colors.orange[800] : Colors.grey,
                                       ),
                                       const SizedBox(width: 8),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Text('Focus Shield', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0A192F))),
-                                          Text(
-                                            isFocusShield ? 'Blocks active' : 'No block',
-                                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                                          ),
-                                        ],
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Focus Shield',
+                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0A192F)),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              isFocusShield ? 'Blocks active' : 'No block',
+                                              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 4),
                                       Transform.scale(
                                         scale: 0.8,
                                         child: Switch(
@@ -890,12 +905,18 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Boundaries Saved Successfully!')),
                       );
-                      Navigator.push(
+                      final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const TranquilitySuccessScreen(),
                         ),
                       );
+                      if (result == true && mounted) {
+                        final shellState = context.findAncestorStateOfType<DashboardShellState>();
+                        if (shellState != null) {
+                          shellState.setSelectedIndex(0);
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0D47A1),

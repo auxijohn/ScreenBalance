@@ -159,12 +159,19 @@ class _InterventionOverlayScreenState extends State<InterventionOverlayScreen> w
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Blurred background
+          // Blurred background replacement: premium sharp gradient background
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: Container(
-                color: const Color(0xFFE3F2FD).withOpacity(0.85), // Premium light blue opacity
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFFE3F2FD),
+                    const Color(0xFFBBDEFB).withOpacity(0.98),
+                    const Color(0xFFE3F2FD),
+                  ],
+                ),
               ),
             ),
           ),

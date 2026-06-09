@@ -152,55 +152,53 @@ class _PostValidationScreenState extends State<PostValidationScreen> {
     return SizedBox(
       width: 170,
       height: 190,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            decoration: BoxDecoration(
-              color: isSelected ? Colors.white.withOpacity(0.95) : Colors.white.withOpacity(0.85),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: isSelected ? const Color(0xFF0D47A1) : Colors.white,
-                width: isSelected ? 3.0 : 1.5,
-              ),
-              boxShadow: isSelected
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 6))]
-                  : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0D47A1) : Colors.white.withOpacity(0.9),
+            width: isSelected ? 3.0 : 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _selectMood(key),
-                borderRadius: BorderRadius.circular(28),
-                child: Padding(
-                  padding: const EdgeInsets.all(14.0),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.03),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: CustomPaint(painter: painter),
-                        ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _selectMood(key),
+            borderRadius: BorderRadius.circular(28),
+            child: Padding(
+              padding: const EdgeInsets.all(14.0),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.03),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? const Color(0xFF0D47A1) : const Color(0xFF0A192F),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                      child: CustomPaint(painter: painter),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? const Color(0xFF0D47A1) : const Color(0xFF0A192F),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ),

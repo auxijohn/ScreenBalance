@@ -51,8 +51,14 @@ class InterventionEngine {
 
   void startListening() {
     NativeTracker.initialize();
-    NativeTracker.appOpenStream.stream.listen((packageName) {
-      processAppOpen(packageName);
+    NativeTracker.appOpenStream.stream.listen((event) {
+      if (event == "DEVICE_LOCK") {
+        processDeviceLock();
+      } else if (event == "DEVICE_UNLOCK") {
+        processDeviceUnlock();
+      } else {
+        processAppOpen(event);
+      }
     });
   }
 

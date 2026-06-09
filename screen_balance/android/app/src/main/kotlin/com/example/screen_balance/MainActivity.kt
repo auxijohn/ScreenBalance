@@ -14,10 +14,18 @@ class MainActivity: FlutterActivity() {
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == "com.example.screen_balance.APP_CHANGED") {
-                val packageName = intent.getStringExtra("package_name")
-                if (packageName != null) {
-                    eventSink?.success(packageName)
+            when (intent.action) {
+                "com.example.screen_balance.APP_CHANGED" -> {
+                    val packageName = intent.getStringExtra("package_name")
+                    if (packageName != null) {
+                        eventSink?.success(packageName)
+                    }
+                }
+                Intent.ACTION_SCREEN_OFF -> {
+                    eventSink?.success("DEVICE_LOCK")
+                }
+                Intent.ACTION_USER_PRESENT -> {
+                    eventSink?.success("DEVICE_UNLOCK")
                 }
             }
         }
@@ -30,8 +38,16 @@ class MainActivity: FlutterActivity() {
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     eventSink = events
-                    val filter = IntentFilter("com.example.screen_balance.APP_CHANGED")
-                    registerReceiver(receiver, filter)
+                    val filter = IntentFilter().apply {
+                        addAction("com.example.screen_balance.APP_CHANGED")
+                        addAction(Intent.ACTION_SCREEN_OFF)
+                        addAction(Intent.ACTION_USER_PRESENT)
+                    }
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+                    } else {
+                        registerReceiver(receiver, filter)
+                    }
                 }
 
                 override fun onCancel(arguments: Any?) {

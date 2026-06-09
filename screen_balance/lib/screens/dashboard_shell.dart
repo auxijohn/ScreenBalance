@@ -7,15 +7,22 @@ import 'boundary_config_screen.dart';
 import 'insights_dashboard_screen.dart';
 
 class DashboardShell extends StatefulWidget {
-  const DashboardShell({super.key});
+  final VoidCallback onLogout;
+  const DashboardShell({super.key, required this.onLogout});
 
   @override
-  State<DashboardShell> createState() => _DashboardShellState();
+  State<DashboardShell> createState() => DashboardShellState();
 }
 
-class _DashboardShellState extends State<DashboardShell> {
+class DashboardShellState extends State<DashboardShell> {
   int _currentIndex = 0;
   bool _isLoading = true;
+
+  void setSelectedIndex(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
   UserProfile? _profile;
 
   @override
@@ -129,7 +136,10 @@ class _DashboardShellState extends State<DashboardShell> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: isSelected ? 20 : 12,
+          vertical: 12,
+        ),
         decoration: BoxDecoration(
           gradient: isSelected
               ? const LinearGradient(
@@ -161,16 +171,18 @@ class _DashboardShellState extends State<DashboardShell> {
               color: isSelected ? Colors.white : const Color(0xFF0A192F).withOpacity(0.6),
               size: 20,
             ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF0A192F).withOpacity(0.8),
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.bold,
-                fontSize: 13,
-                letterSpacing: isSelected ? 0.3 : 0.0,
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                  letterSpacing: 0.3,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -189,8 +201,9 @@ class _DashboardShellState extends State<DashboardShell> {
 
     final List<Widget> pages = [
       ProfileCardScreen(
-        userName: _profile!.name,
-        archetypeDetails: _profile!.activeIntentionCard,
+        profile: _profile!,
+        onProfileUpdated: _loadProfile,
+        onLogout: widget.onLogout,
       ),
       const BoundaryConfigScreen(),
       const InsightsDashboardScreen(),

@@ -31,6 +31,7 @@ public class AppTrackerService extends AccessibilityService {
                 Log.d(TAG, "Opened app: " + packageName);
                 
                 Intent intent = new Intent(ACTION_APP_CHANGED);
+                intent.setPackage(getPackageName());
                 intent.putExtra(EXTRA_PACKAGE_NAME, packageName);
                 sendBroadcast(intent);
             }

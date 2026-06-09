@@ -63,18 +63,13 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
   }
 
   void _finishZenSession() {
-    // Pop back to the Wellness Dashboard (which is ProfileCardScreen)
-    // We want to pop both the Success Screen and the BoundaryConfigScreen
-    int count = 0;
-    Navigator.popUntil(context, (route) {
-      return count++ == 2;
-    });
+    Navigator.pop(context, true);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F2625), // Calm midnight teal base
+      backgroundColor: const Color(0xFF0D47A1), // Consistent dark blue theme
       body: Stack(
         children: [
           // Calming ambient background glow
@@ -86,7 +81,7 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.teal[800]?.withOpacity(0.25),
+                color: Colors.blue[800]?.withOpacity(0.25),
               ),
             ),
           ),
@@ -98,7 +93,7 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
               height: 500,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF00695C).withOpacity(0.2),
+                color: const Color(0xFF0D47A1).withOpacity(0.2),
               ),
             ),
           ),
@@ -106,13 +101,12 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
           SafeArea(
             child: FadeTransition(
               opacity: _fadeAnimation,
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 24),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Spacer(),
+                    const SizedBox(height: 20),
                     
                     // Glassmorphic Zen card
                     Container(
@@ -136,39 +130,29 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
                           ScaleTransition(
                             scale: _pulseAnimation,
                             child: Container(
-                              width: 130,
-                              height: 130,
+                              height: 120,
+                              width: 120,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                  colors: [
-                                    Colors.tealAccent.withOpacity(0.65),
-                                    Colors.tealAccent.withOpacity(0.15),
-                                    Colors.transparent,
-                                  ],
-                                  stops: const [0.3, 0.7, 1.0],
-                                ),
+                                border: Border.all(color: Colors.white, width: 3),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.tealAccent.withOpacity(0.25),
+                                    color: Colors.black.withOpacity(0.25),
+                                    blurRadius: 25,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.3),
                                     blurRadius: 30,
                                     spreadRadius: 2,
                                   ),
                                 ],
                               ),
-                              child: Center(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(65),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    color: const Color(0xFF0F2625).withOpacity(0.85),
-                                    child: Image.asset(
-                                      'assets/images/mascot.png',
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(60),
+                                child: Image.asset(
+                                  'assets/images/mascot.png',
+                                  fit: BoxFit.cover,
                                 ),
                               ),
                             ),
@@ -194,7 +178,7 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.teal[100]?.withOpacity(0.8),
+                              color: Colors.blue[100]?.withOpacity(0.8),
                               height: 1.5,
                             ),
                           ),
@@ -204,21 +188,21 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                             decoration: BoxDecoration(
-                              color: Colors.tealAccent.withOpacity(0.04),
+                              color: Colors.white.withOpacity(0.04),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.tealAccent.withOpacity(0.15)),
+                              border: Border.all(color: Colors.white.withOpacity(0.15)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.spa_rounded, color: Colors.tealAccent, size: 18),
+                                const Icon(Icons.spa_rounded, color: Colors.white, size: 18),
                                 const SizedBox(width: 10),
                                 Text(
                                   _breathInstruction,
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.tealAccent,
+                                    color: Colors.white,
                                     letterSpacing: 0.5,
                                   ),
                                 ),
@@ -229,20 +213,20 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
                       ),
                     ),
                     
-                    const Spacer(),
+                    const SizedBox(height: 40),
                     
                     // 5. Tactile, premium confirmation button
                     ElevatedButton(
                       onPressed: _finishZenSession,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.tealAccent[400],
-                        foregroundColor: const Color(0xFF0F2625),
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF0D47A1),
                         padding: const EdgeInsets.symmetric(vertical: 18),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(22),
                         ),
                         elevation: 4,
-                        shadowColor: Colors.tealAccent.withOpacity(0.3),
+                        shadowColor: Colors.black.withOpacity(0.25),
                       ),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
