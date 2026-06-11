@@ -108,7 +108,7 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
         profile.saveToStorage().then((_) {
           if (!mounted) return;
           widget.onAuthenticated();
-          Navigator.pop(context);
+          Navigator.popUntil(context, (route) => route.isFirst);
         });
       }
     });

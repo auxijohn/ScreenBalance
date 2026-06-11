@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class TranquilitySuccessScreen extends StatefulWidget {
   const TranquilitySuccessScreen({super.key});
@@ -62,8 +63,8 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
     super.dispose();
   }
 
-  void _finishZenSession() {
-    Navigator.pop(context, true);
+  void _closeApplication() {
+    SystemNavigator.pop();
   }
 
   @override
@@ -217,7 +218,7 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
                     
                     // 5. Tactile, premium confirmation button
                     ElevatedButton(
-                      onPressed: _finishZenSession,
+                      onPressed: _closeApplication,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF0D47A1),
@@ -232,7 +233,7 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Enter My Balance Space',
+                            'Close the App',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -240,7 +241,7 @@ class _TranquilitySuccessScreenState extends State<TranquilitySuccessScreen> wit
                             ),
                           ),
                           SizedBox(width: 8),
-                          Icon(Icons.spa_outlined, size: 20),
+                          Icon(Icons.exit_to_app_rounded, size: 20),
                         ],
                       ),
                     ),

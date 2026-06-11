@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
+import '../models/boundary_settings.dart';
+import '../logic/intervention_engine.dart';
 import 'quiz_screen.dart';
 
 class ProfileCardScreen extends StatefulWidget {
@@ -160,6 +163,9 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
       'description': 'You are looking to build healthier boundaries. We will build a customized system to protect your peace and focus.'
     };
     await widget.profile.saveToStorage();
+    
+    // Clear boundary settings
+    await BoundarySettings.clearFromStorage();
     
     // Clear user_pin to force AuthScreen registers
     final prefs = await SharedPreferences.getInstance();
@@ -693,6 +699,8 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
       }
     }
 
+
+
     return Scaffold(
       body: Stack(
         children: [
@@ -844,7 +852,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                     ),
                     child: Column(
                       children: [
-                        // Mascot Image replaced circular emoji
+                        // Mascot Image container (reverted back to default mascot representation)
                         Container(
                           width: 80,
                           height: 80,
@@ -918,6 +926,153 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                   ),
                   const SizedBox(height: 20),
 
+                  // Digital Mindfulness Score (White Card)
+                  Builder(
+                    builder: (context) {
+                      final score = InterventionEngine().getDigitalMindfulnessScore();
+                      final double scoreFraction = score / 100.0;
+                      final phraseData = InterventionEngine().getMindfulnessPhrase(score);
+                      final phraseTitle = phraseData['title'] ?? '';
+                      final phraseDesc = phraseData['description'] ?? '';
+
+                      Color scoreColor = const Color(0xFF00BFA5); // Teal
+                      if (score >= 90) {
+                        scoreColor = const Color(0xFF00E5FF); // Cyan
+                      } else if (score >= 75) {
+                        scoreColor = Colors.green[600]!;
+                      } else if (score >= 60) {
+                        scoreColor = Colors.amber[700]!;
+                      } else if (score >= 40) {
+                        scoreColor = Colors.orange[800]!;
+                      } else {
+                        scoreColor = Colors.redAccent;
+                      }
+
+                      final totalInterventions = InterventionEngine().behavioralHistory.where((e) => e.eventType == "Intervention Triggered").length;
+
+                      return Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(color: Colors.white, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'DIGITAL MINDFULNESS SCORE',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0D47A1),
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Minimalist Solar Eclipse Graphic
+                                SizedBox(
+                                  width: 90,
+                                  height: 90,
+                                  child: CustomPaint(
+                                    painter: SolarEclipsePainter(
+                                      scoreFraction: scoreFraction,
+                                      glowColor: scoreColor,
+                                      score: score,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 24),
+                                
+                                // Details Column
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                                        textBaseline: TextBaseline.alphabetic,
+                                        children: [
+// Score is now rendered inside the SolarEclipsePainter graphic
+// The large numeric display has been removed to avoid duplication
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      
+                                      // Category title badge
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: scoreColor.withOpacity(0.10),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: scoreColor.withOpacity(0.25), width: 1),
+                                        ),
+                                        child: Text(
+                                          phraseTitle.toUpperCase(),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            color: scoreColor,
+                                            letterSpacing: 0.8,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            // Description text below the graphic
+                            Text(
+                              phraseDesc,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black87.withOpacity(0.75),
+                                height: 1.45,
+                              ),
+                            ),
+                            const Divider(height: 32, color: Colors.black12),
+                            
+                            // Daily Activity Telemetry Row
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTelemetryStats(
+                                    icon: Icons.screen_lock_portrait,
+                                    label: 'Daily Unlocks',
+                                    value: '${InterventionEngine().unlockCountToday}',
+                                    color: Colors.blue[900]!,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildTelemetryStats(
+                                    icon: Icons.privacy_tip_outlined,
+                                    label: 'Interventions',
+                                    value: '$totalInterventions',
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
                   // Digital Vulnerability Metric Gauges (White Card)
                   Container(
                     padding: const EdgeInsets.all(24),
@@ -967,107 +1122,6 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                   ),
                   const SizedBox(height: 20),
 
-                  // Interactive Action Checklist Panel (White/Glass Card)
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'TAILORED HABIT ACTIONS',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0D47A1),
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                            Text(
-                              '${_habitChecks.where((c) => c).length}/3 Done',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0D47A1),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        ...List.generate(3, (index) {
-                          final isChecked = _habitChecks[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _habitChecks[index] = !isChecked;
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 250),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                decoration: BoxDecoration(
-                                  color: isChecked 
-                                      ? const Color(0xFF0D47A1).withOpacity(0.06) 
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: isChecked 
-                                        ? const Color(0xFF0D47A1).withOpacity(0.3) 
-                                        : Colors.grey.withOpacity(0.2),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        color: isChecked ? const Color(0xFF0D47A1) : Colors.transparent,
-                                        border: Border.all(
-                                          color: isChecked ? const Color(0xFF0D47A1) : Colors.grey,
-                                          width: 1.5,
-                                        ),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: isChecked 
-                                          ? const Icon(Icons.check, size: 14, color: Colors.white) 
-                                          : null,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Text(
-                                        _tailoredHabits[index],
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: isChecked ? const Color(0xFF0A192F).withOpacity(0.5) : const Color(0xFF0A192F),
-                                          decoration: isChecked ? TextDecoration.lineThrough : null,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 36),
-
                   // Save & Proceed Button
                   ElevatedButton(
                     onPressed: () {
@@ -1116,73 +1170,208 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
     required Color color,
     required String tooltip,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(
+    // Determine severity badge and status description based on metric type and value
+    String status = "Optimal";
+    String desc = "Your response to digital triggers is balanced and steady.";
+    Color badgeColor = const Color(0xFF00BFA5); // Teal
+    
+    if (label.contains("Dopamine")) {
+      if (value >= 0.88) {
+        status = "Critical";
+        desc = "Your brain is highly sensitised to instant notification triggers. You experience frequent focus fragments.";
+        badgeColor = const Color(0xFFD50000); // Red
+      } else if (value >= 0.75) {
+        status = "High Risk";
+        desc = "You are easily drawn in by notifications. Setting quiet hours will help rest your attention spans.";
+        badgeColor = const Color(0xFFFF6D00); // Orange
+      } else if (value >= 0.60) {
+        status = "Moderate";
+        desc = "Moderate susceptibility. Occasional scroll loops occur during midday exhaustion states.";
+        badgeColor = const Color(0xFFFFB300); // Amber
+      }
+    } else if (label.contains("Phantom")) {
+      if (value >= 0.88) {
+        status = "Critical";
+        desc = "Extreme phantom checking. You unconsciously reach for your device up to 40 times a day without a reason.";
+        badgeColor = const Color(0xFFD50000); // Red
+      } else if (value >= 0.75) {
+        status = "High Risk";
+        desc = "Strong muscle memory checking patterns. Placing the device out of sight is recommended.";
+        badgeColor = const Color(0xFFFF6D00); // Orange
+      } else if (value >= 0.60) {
+        status = "Moderate";
+        desc = "Occasional habit checks, primarily when experiencing boredom or transition moments.";
+        badgeColor = const Color(0xFFFFB300); // Amber
+      }
+    } else {
+      // Rest & Focus Impact
+      if (value >= 0.88) {
+        status = "Critical";
+        desc = "Severe displacement. Night screen time is directly reducing your deep-wave sleep cycle.";
+        badgeColor = const Color(0xFFD50000); // Red
+      } else if (value >= 0.75) {
+        status = "High Risk";
+        desc = "High impact. Device usage is interfering with your evening wind-down rhythm and morning energy.";
+        badgeColor = const Color(0xFFFF6D00); // Orange
+      } else if (value >= 0.60) {
+        status = "Moderate";
+        desc = "Moderate impact on your focus flow. Tasks are interrupted but core rest is stable.";
+        badgeColor = const Color(0xFFFFB300); // Amber
+      }
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50]?.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Radial Speedometer Gauge
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 76,
+                height: 76,
+                child: CustomPaint(
+                  painter: RadialGaugePainter(value: value, color: badgeColor),
+                ),
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Flexible(
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0A192F),
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                  const SizedBox(height: 4), // Shift down slightly due to arc angle
+                  Text(
+                    '${(value * 100).toInt()}%',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF0A192F),
+                      shadows: [
+                        Shadow(
+                          color: badgeColor.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Tooltip(
-                    message: tooltip,
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0A192F).withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    textStyle: const TextStyle(color: Colors.white, fontSize: 11),
-                    child: const Icon(Icons.info_outline, size: 14, color: Color(0xFF0D47A1)),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              '${(value * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 8,
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(10),
+            ],
           ),
-          child: FractionallySizedBox(
-            alignment: Alignment.centerLeft,
-            widthFactor: value,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [color.withOpacity(0.6), color],
+          const SizedBox(width: 18),
+          
+          // Details Column
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0A192F),
+                        ),
+                      ),
+                    ),
+                    Tooltip(
+                      message: tooltip,
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0A192F).withOpacity(0.95),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      textStyle: const TextStyle(color: Colors.white, fontSize: 11),
+                      child: Icon(Icons.info_outline, size: 14, color: Colors.blue[800]),
+                    ),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(10),
-              ),
+                const SizedBox(height: 6),
+                
+                // Severity Badge Chip
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: badgeColor.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: badgeColor.withOpacity(0.25), width: 1),
+                  ),
+                  child: Text(
+                    status.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: badgeColor,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                
+                // Explanatory Status Description
+                Text(
+                  desc,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: Colors.black87.withOpacity(0.75),
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTelemetryStats({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50]?.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0A192F)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1218,4 +1407,151 @@ class RadarWavePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(RadarWavePainter oldDelegate) => true;
+}
+
+// Custom Painter for Vulnerability Speedometer Radial Gauge
+class RadialGaugePainter extends CustomPainter {
+  final double value;
+  final Color color;
+
+  RadialGaugePainter({required this.value, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 5;
+    
+    // Background Track Paint (Slate Grey)
+    final bgPaint = Paint()
+      ..color = const Color(0xFFE2E8F0)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6.0
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      math.pi * 0.85, // Starts bottom-left
+      math.pi * 1.3,  // Sweeps 234 degrees
+      false,
+      bgPaint,
+    );
+
+    // Dynamic sweep angle based on value
+    final sweepAngle = math.pi * 1.3 * value;
+
+    // Draw a subtle soft ambient glow beneath the active track
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10.0
+      ..strokeCap = StrokeCap.round
+      ..color = color.withOpacity(0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0);
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      math.pi * 0.85,
+      sweepAngle,
+      false,
+      glowPaint,
+    );
+
+    // Active Gauge Paint
+    final activePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 7.0
+      ..strokeCap = StrokeCap.round
+      ..shader = SweepGradient(
+        colors: [color.withOpacity(0.55), color],
+        stops: const [0.0, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      math.pi * 0.85,
+      sweepAngle,
+      false,
+      activePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant RadialGaugePainter oldDelegate) {
+    return oldDelegate.value != value || oldDelegate.color != color;
+  }
+}
+
+class SolarEclipsePainter extends CustomPainter {
+  final double scoreFraction;
+  final Color glowColor;
+  final int score;
+
+  SolarEclipsePainter({required this.scoreFraction, required this.glowColor, required this.score});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2.5;
+
+    // Draw corona glow
+    final double coronaRadius = radius + 6.0 + (1.0 - scoreFraction) * 4.0;
+    final coronaPaint = Paint()
+      ..color = glowColor.withOpacity(0.45)
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12.0);
+
+    canvas.drawCircle(center, coronaRadius, coronaPaint);
+
+    // Draw active sun core
+    final sunPaint = Paint()
+      ..color = glowColor
+      ..style = PaintingStyle.fill;
+    
+    final sunGlowPaint = Paint()
+      ..color = Colors.white.withOpacity(0.65)
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0);
+    
+    // Score text will be drawn later for proper layering
+
+    canvas.drawCircle(center, radius, sunPaint);
+    canvas.drawCircle(center, radius - 2, sunGlowPaint);
+
+    // Draw score text in the center
+// Score text will be drawn after shadow
+// Draw eclipsing shadow (dark moon body representing screen usage blocking the light)
+    if (scoreFraction < 1.0) {
+      final shadowOffset = Offset(
+        center.dx + (radius * 1.8 * scoreFraction),
+        center.dy,
+      );
+      final shadowPaint = Paint()
+        ..color = const Color(0xFF0A192F)
+        ..style = PaintingStyle.fill;
+
+      canvas.drawCircle(shadowOffset, radius - 0.5, shadowPaint);
+    }
+
+    // Draw score text in the center
+    final textSpan = TextSpan(
+      text: '$score',
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+    final textPainter = TextPainter(
+      text: textSpan,
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    final offset = center - Offset(textPainter.width / 2, textPainter.height / 2);
+    textPainter.paint(canvas, offset);
+  }
+
+  @override
+  bool shouldRepaint(covariant SolarEclipsePainter oldDelegate) {
+    return oldDelegate.scoreFraction != scoreFraction || oldDelegate.glowColor != glowColor || oldDelegate.score != score;
+  }
 }

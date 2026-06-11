@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'dart:math' as math;
 import '../logic/intervention_engine.dart';
 
 class PostValidationScreen extends StatefulWidget {
@@ -12,6 +13,64 @@ class PostValidationScreen extends StatefulWidget {
 class _PostValidationScreenState extends State<PostValidationScreen> {
   String? _selectedMood;
 
+  // Randomized painter parameters generated once per screen load
+  late List<Offset> _chaoticPoints1;
+  late List<Offset> _chaoticPoints2;
+  late List<double> _relaxedYFactors;
+  late Offset _focusedCenterOffset;
+  late Offset _focusedDotOffset;
+  late List<double> _focusedRadii;
+  late List<List<double>> _drainedLineFactors;
+
+  @override
+  void initState() {
+    super.initState();
+    _randomizePainters();
+  }
+
+  void _randomizePainters() {
+    final random = math.Random();
+    
+    // 1. Chaotic
+    _chaoticPoints1 = List.generate(6, (i) {
+      final x = 0.1 + (0.8 * i / 5);
+      final y = 0.15 + 0.7 * random.nextDouble();
+      return Offset(x, y);
+    });
+    _chaoticPoints2 = List.generate(5, (i) {
+      final x = 0.15 + (0.7 * i / 4);
+      final y = 0.15 + 0.7 * random.nextDouble();
+      return Offset(x, y);
+    });
+
+    // 2. Relaxed
+    _relaxedYFactors = List.generate(8, (_) => 0.15 + 0.7 * random.nextDouble());
+
+    // 3. Focused
+    _focusedCenterOffset = Offset(
+      -0.08 + 0.16 * random.nextDouble(),
+      -0.08 + 0.16 * random.nextDouble(),
+    );
+    _focusedDotOffset = Offset(
+      -0.05 + 0.10 * random.nextDouble(),
+      -0.05 + 0.10 * random.nextDouble(),
+    );
+    _focusedRadii = [
+      0.30 + 0.08 * random.nextDouble(),
+      0.18 + 0.06 * random.nextDouble(),
+    ];
+
+    // 4. Drained
+    _drainedLineFactors = List.generate(4, (i) {
+      final y = 0.25 + 0.5 * (i / 3) + (random.nextDouble() * 0.05);
+      final start = 0.1 + 0.15 * random.nextDouble();
+      final end = 0.75 + 0.15 * random.nextDouble();
+      final opacity = 0.15 + 0.65 * random.nextDouble();
+      final stroke = 1.5 + 2.0 * random.nextDouble();
+      return [y, start, end, opacity, stroke];
+    });
+  }
+
   void _selectMood(String mood) {
     setState(() {
       _selectedMood = mood;
@@ -20,13 +79,31 @@ class _PostValidationScreenState extends State<PostValidationScreen> {
     // Log the validation check to Behavioral History
     InterventionEngine().logEvent("Mood Validation Check", "Selected state: $mood");
     
+    String predictedState;
+    switch (mood) {
+      case 'Chaotic':
+        predictedState = 'Chaotic / Scattered';
+        break;
+      case 'Relaxed':
+        predictedState = 'Relaxed / Grounded';
+        break;
+      case 'Focused':
+        predictedState = 'Focused / Centered';
+        break;
+      case 'Drained':
+        predictedState = 'Faded / Drained';
+        break;
+      default:
+        predictedState = mood;
+    }
+
     // Auto-pop after selection and show a nice feedback snackbar
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Thank you! Regulated state logged.'),
-          backgroundColor: Color(0xFF0D47A1),
+        SnackBar(
+          content: Text('Predicted state: $predictedState. Regulated state logged.'),
+          backgroundColor: const Color(0xFF0D47A1),
         ),
       );
       Navigator.pop(context); // pop back
@@ -128,10 +205,10 @@ class _PostValidationScreenState extends State<PostValidationScreen> {
                         spacing: 20,
                         runSpacing: 20,
                         children: [
-                          _buildEntropyOption("Chaotic", const ChaoticFlowPainter(), "Chaotic / Scattered"),
-                          _buildEntropyOption("Relaxed", const RelaxedFlowPainter(), "Relaxed / Grounded"),
-                          _buildEntropyOption("Focused", const FocusedFlowPainter(), "Focused / Centered"),
-                          _buildEntropyOption("Drained", const DrainedFlowPainter(), "Faded / Drained"),
+                          _buildEntropyOption("Chaotic", ChaoticFlowPainter(points1: _chaoticPoints1, points2: _chaoticPoints2)),
+                          _buildEntropyOption("Relaxed", RelaxedFlowPainter(yFactors: _relaxedYFactors)),
+                          _buildEntropyOption("Focused", FocusedFlowPainter(centerOffset: _focusedCenterOffset, dotOffset: _focusedDotOffset, radii: _focusedRadii)),
+                          _buildEntropyOption("Drained", DrainedFlowPainter(lineFactors: _drainedLineFactors)),
                         ],
                       ),
                     ),
@@ -147,18 +224,18 @@ class _PostValidationScreenState extends State<PostValidationScreen> {
     );
   }
 
-  Widget _buildEntropyOption(String key, CustomPainter painter, String label) {
+  Widget _buildEntropyOption(String key, CustomPainter painter) {
     final isSelected = _selectedMood == key;
     return SizedBox(
       width: 170,
-      height: 190,
+      height: 170,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.white.withOpacity(0.9),
+          color: isSelected ? Colors.white : Colors.white.withOpacity(0.95),
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
-            color: isSelected ? const Color(0xFF0D47A1) : Colors.white.withOpacity(0.9),
+            color: isSelected ? const Color(0xFF0D47A1) : Colors.white.withOpacity(0.95),
             width: isSelected ? 3.0 : 1.5,
           ),
           boxShadow: [
@@ -188,16 +265,6 @@ class _PostValidationScreenState extends State<PostValidationScreen> {
                       child: CustomPaint(painter: painter),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? const Color(0xFF0D47A1) : const Color(0xFF0A192F),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
                 ],
               ),
             ),
@@ -210,7 +277,11 @@ class _PostValidationScreenState extends State<PostValidationScreen> {
 
 // 1. Chaotic Flow Painter (Erratic red/orange zig-zag lines)
 class ChaoticFlowPainter extends CustomPainter {
-  const ChaoticFlowPainter();
+  final List<Offset> points1;
+  final List<Offset> points2;
+
+  const ChaoticFlowPainter({required this.points1, required this.points2});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint1 = Paint()
@@ -228,31 +299,35 @@ class ChaoticFlowPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
 
     final path1 = Path();
-    path1.moveTo(size.width * 0.1, size.height * 0.7);
-    path1.lineTo(size.width * 0.25, size.height * 0.2);
-    path1.lineTo(size.width * 0.4, size.height * 0.8);
-    path1.lineTo(size.width * 0.55, size.height * 0.3);
-    path1.lineTo(size.width * 0.7, size.height * 0.85);
-    path1.lineTo(size.width * 0.9, size.height * 0.15);
+    if (points1.isNotEmpty) {
+      path1.moveTo(points1[0].dx * size.width, points1[0].dy * size.height);
+      for (int i = 1; i < points1.length; i++) {
+        path1.lineTo(points1[i].dx * size.width, points1[i].dy * size.height);
+      }
+    }
 
     final path2 = Path();
-    path2.moveTo(size.width * 0.15, size.height * 0.4);
-    path2.lineTo(size.width * 0.35, size.height * 0.8);
-    path2.lineTo(size.width * 0.5, size.height * 0.15);
-    path2.lineTo(size.width * 0.7, size.height * 0.6);
-    path2.lineTo(size.width * 0.85, size.height * 0.3);
+    if (points2.isNotEmpty) {
+      path2.moveTo(points2[0].dx * size.width, points2[0].dy * size.height);
+      for (int i = 1; i < points2.length; i++) {
+        path2.lineTo(points2[i].dx * size.width, points2[i].dy * size.height);
+      }
+    }
 
     canvas.drawPath(path1, paint1);
     canvas.drawPath(path2, paint2);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 // 2. Relaxed Flow Painter (Smooth calming blue/teal curves)
 class RelaxedFlowPainter extends CustomPainter {
-  const RelaxedFlowPainter();
+  final List<double> yFactors;
+
+  const RelaxedFlowPainter({required this.yFactors});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint1 = Paint()
@@ -268,19 +343,19 @@ class RelaxedFlowPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final path1 = Path();
-    path1.moveTo(size.width * 0.05, size.height * 0.5);
+    path1.moveTo(size.width * 0.05, size.height * yFactors[0]);
     path1.cubicTo(
-      size.width * 0.3, size.height * 0.1,
-      size.width * 0.7, size.height * 0.9,
-      size.width * 0.95, size.height * 0.5,
+      size.width * 0.3, size.height * yFactors[1],
+      size.width * 0.7, size.height * yFactors[2],
+      size.width * 0.95, size.height * yFactors[3],
     );
 
     final path2 = Path();
-    path2.moveTo(size.width * 0.05, size.height * 0.6);
+    path2.moveTo(size.width * 0.05, size.height * yFactors[4]);
     path2.cubicTo(
-      size.width * 0.3, size.height * 0.85,
-      size.width * 0.7, size.height * 0.35,
-      size.width * 0.95, size.height * 0.6,
+      size.width * 0.3, size.height * yFactors[5],
+      size.width * 0.7, size.height * yFactors[6],
+      size.width * 0.95, size.height * yFactors[7],
     );
 
     canvas.drawPath(path1, paint1);
@@ -288,15 +363,27 @@ class RelaxedFlowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 // 3. Focused Flow Painter (Concentric target circles)
 class FocusedFlowPainter extends CustomPainter {
-  const FocusedFlowPainter();
+  final Offset centerOffset;
+  final Offset dotOffset;
+  final List<double> radii;
+
+  const FocusedFlowPainter({
+    required this.centerOffset,
+    required this.dotOffset,
+    required this.radii,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width * 0.5, size.height * 0.5);
+    final center = Offset(
+      size.width * 0.5 + centerOffset.dx * size.width,
+      size.height * 0.5 + centerOffset.dy * size.height,
+    );
     
     final paintOuter = Paint()
       ..color = const Color(0xFF0D47A1).withOpacity(0.4)
@@ -312,50 +399,45 @@ class FocusedFlowPainter extends CustomPainter {
       ..color = Colors.teal[500]!
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(center, size.width * 0.35, paintOuter);
-    canvas.drawCircle(center, size.width * 0.22, paintInner);
-    canvas.drawCircle(center, size.width * 0.08, paintDot);
+    canvas.drawCircle(center, size.width * radii[0], paintOuter);
+    canvas.drawCircle(center, size.width * radii[1], paintInner);
+    
+    final dotCenter = Offset(
+      center.dx + dotOffset.dx * size.width,
+      center.dy + dotOffset.dy * size.height,
+    );
+    canvas.drawCircle(dotCenter, size.width * 0.08, paintDot);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 // 4. Drained Flow Painter (Horizontal fading/descending lines)
 class DrainedFlowPainter extends CustomPainter {
-  const DrainedFlowPainter();
+  final List<List<double>> lineFactors;
+
+  const DrainedFlowPainter({required this.lineFactors});
+
   @override
   void paint(Canvas canvas, Size size) {
-    final paint1 = Paint()
-      ..color = Colors.grey[500]!
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+    for (var factor in lineFactors) {
+      final y = factor[0] * size.height;
+      final start = factor[1] * size.width;
+      final end = factor[2] * size.width;
+      final opacity = factor[3];
+      final stroke = factor[4];
 
-    final paint2 = Paint()
-      ..color = Colors.grey[400]!.withOpacity(0.5)
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+      final paint = Paint()
+        ..color = Colors.grey[500]!.withOpacity(opacity)
+        ..strokeWidth = stroke
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
 
-    // Fading horizontal step-down lines
-    canvas.drawLine(
-      Offset(size.width * 0.15, size.height * 0.3),
-      Offset(size.width * 0.85, size.height * 0.3),
-      paint1,
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.25, size.height * 0.55),
-      Offset(size.width * 0.75, size.height * 0.55),
-      paint2,
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.35, size.height * 0.8),
-      Offset(size.width * 0.65, size.height * 0.8),
-      paint2,
-    );
+      canvas.drawLine(Offset(start, y), Offset(end, y), paint);
+    }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

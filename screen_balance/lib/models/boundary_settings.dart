@@ -86,6 +86,17 @@ class BoundarySettings {
     await prefs.setString('categorizedApps', json.encode(categorizedApps));
   }
 
+  static Future<void> clearFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('targetBedtime');
+    await prefs.remove('focusStartTime');
+    await prefs.remove('focusEndTime');
+    await prefs.remove('morningBufferMinutes');
+    await prefs.remove('accountabilityContacts');
+    await prefs.remove('customApps');
+    await prefs.remove('categorizedApps');
+  }
+
   static String? _timeToString(TimeOfDay? time) {
     if (time == null) return null;
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';

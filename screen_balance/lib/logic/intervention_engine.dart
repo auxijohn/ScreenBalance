@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'dart:math';
 import '../models/boundary_settings.dart';
 import 'native_tracker.dart';
-
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 class BehavioralEvent {
   final DateTime timestamp;
   final String eventType;
@@ -42,6 +43,126 @@ class InterventionEngine {
   bool _somaticResetCompletedOverride = false;
   DateTime? _firstMorningUnlockTime;
   int _unlockCountToday = 0;
+
+  int get unlockCountToday => _unlockCountToday;
+
+  @visibleForTesting
+  set unlockCountToday(int value) {
+    _unlockCountToday = value;
+  }
+
+  int getDigitalMindfulnessScore() {
+    int score = 100;
+    if (_unlockCountToday > 10) {
+      score -= (_unlockCountToday - 10) * 2;
+    }
+
+    final now = getCurrentTime();
+    final todayInterventionsCount = behavioralHistory.where((event) {
+      return event.eventType == "Intervention Triggered" &&
+          event.timestamp.year == now.year &&
+          event.timestamp.month == now.month &&
+          event.timestamp.day == now.day;
+    }).length;
+
+    score -= todayInterventionsCount * 5;
+
+    return score.clamp(0, 100);
+  }
+
+  Map<String, String> getMindfulnessPhrase(int score) {
+    final Random _rand = Random();
+    List<String> _pick(List<String> options) => [options[_rand.nextInt(options.length)]];
+    if (score >= 90) {
+      return {
+        'title': 'Zen Master',
+        'description': 'Exceptional digital presence. You are fully in control of your screen time.',
+        'motivation': _pick([
+          'You are a beacon of digital balance—keep shining!',
+          'Your focus is crystal clear; let it radiate outward.',
+          'Every moment you manage is a victory of mindfulness.'
+        ]).first
+      };
+    } else if (score >= 75) {
+      return {
+        'title': 'Mindful Practitioner',
+        'description': 'Healthy digital boundaries are keeping you grounded and focused.',
+        'motivation': _pick([
+          'Every mindful step strengthens your focus.',
+          'Consistency builds calm; you are on the right path.',
+          'Your balanced usage inspires inner peace.'
+        ]).first
+      };
+    } else if (score >= 60) {
+      return {
+        'title': 'Seeking Balance',
+        'description': 'Moderate phone checking. Consider activating focus shields to prevent loops.',
+        'motivation': _pick([
+          'Balance is a journey—keep progressing.',
+          'Small adjustments lead to lasting harmony.',
+          'Your effort today seeds tomorrow’s equilibrium.'
+        ]).first
+      };
+    } else if (score >= 40) {
+      return {
+        'title': 'Reactive Scroller',
+        'description': 'High screen reactivity detected. Take brief somatic pauses to break the checking cycle.',
+        'motivation': _pick([
+          'Pause, breathe, and regain control.',
+          'A mindful breath can reset your rhythm.',
+          'Take a moment; your mind deserves calm.'
+        ]).first
+      };
+    } else {
+      return {
+        'title': 'Digital Overload',
+        'description': 'Compulsive phone checking. Turn off notifications and rest your eyes.',
+        'motivation': _pick([
+          'Release the overload—choose calm.',
+          'Step back and let tranquility guide you.',
+          'Quiet moments restore your digital wellbeing.'
+        ]).first
+      };
+    }
+  }
+
+  // Returns a random motivational sentence for the given score
+  String getRandomMotivation(int score) {
+    final Random _rand = Random();
+    List<String> options;
+    if (score >= 90) {
+      options = [
+        'You are a beacon of digital balance—keep shining!',
+        'Your focus is crystal clear; let it radiate outward.',
+        'Every moment you manage is a victory of mindfulness.',
+      ];
+    } else if (score >= 75) {
+      options = [
+        'Every mindful step strengthens your focus.',
+        'Consistency builds calm; you are on the right path.',
+        'Your balanced usage inspires inner peace.',
+      ];
+    } else if (score >= 60) {
+      options = [
+        'Balance is a journey—keep progressing.',
+        'Small adjustments lead to lasting harmony.',
+        'Your effort today seeds tomorrow’s equilibrium.',
+      ];
+    } else if (score >= 40) {
+      options = [
+        'Pause, breathe, and regain control.',
+        'A mindful breath can reset your rhythm.',
+        'Take a moment; your mind deserves calm.',
+      ];
+    } else {
+      options = [
+        'Release the overload—choose calm.',
+        'Step back and let tranquility guide you.',
+        'Quiet moments restore your digital wellbeing.',
+      ];
+    }
+    return options[_rand.nextInt(options.length)];
+  }
 
   // Stream to tell the UI to show an overlay
   final StreamController<Map<String, String>> interventionStream = StreamController.broadcast();
@@ -187,6 +308,7 @@ class InterventionEngine {
 
     // 3. Focus Mode Hours Check
     if (category == 'Productivity') {
+      // Removed unused afterText reference; evolved state handled elsewhere
       final start = settings.focusStartTime ?? const TimeOfDay(hour: 9, minute: 0);
       final end = settings.focusEndTime ?? const TimeOfDay(hour: 17, minute: 0);
       if (_isOutsideFocusHours(now, start, end)) {
