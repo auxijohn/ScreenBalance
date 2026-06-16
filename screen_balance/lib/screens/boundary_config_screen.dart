@@ -41,39 +41,47 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
 
   Future<void> _loadSettings() async {
     final loaded = await BoundarySettings.loadFromStorage();
-    setState(() {
-      _settings = loaded;
-    });
+    if (mounted) {
+      setState(() {
+        _settings = loaded;
+      });
+    }
     await _loadApps();
   }
 
   Future<void> _loadApps() async {
     try {
       if (kIsWeb || (!kIsWeb && !Platform.isAndroid)) {
-        setState(() {
-          _installedApps = [];
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _installedApps = [];
+            _isLoading = false;
+          });
+        }
         return;
       }
 
       List<Application> apps = await DeviceApps.getInstalledApplications(
         includeAppIcons: true,
-        includeSystemApps: false,
+        includeSystemApps: true,
         onlyAppsWithLaunchIntent: true,
       );
 
       apps.sort((a, b) => a.appName.toLowerCase().compareTo(b.appName.toLowerCase()));
 
-      setState(() {
-        _installedApps = apps;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _installedApps = apps;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint("Error loading apps: $e");
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -100,7 +108,7 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
       },
     );
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         if (isBedtime) {
           _settings.targetBedtime = picked;
@@ -318,6 +326,7 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
   }
 
   void _showAndroidAppPickerSheet() {
+    String searchQuery = "";
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -335,7 +344,6 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
               ),
               child: StatefulBuilder(
                 builder: (context, setModalState) {
-                  String searchQuery = "";
                   List<Application> filteredApps = _installedApps.where((app) {
                     final alreadyAdded = _settings.customApps.contains(app.packageName);
                     return !alreadyAdded;
@@ -1137,8 +1145,8 @@ class IdentityTransformationDialog extends StatelessWidget {
     // Fetch dynamic phrase based on digital mindfulness score
     final int score = InterventionEngine().getDigitalMindfulnessScore();
     final Map<String, String> phraseData = InterventionEngine().getMindfulnessPhrase(score);
-    final beforeText = phraseData['description'] ?? '';
-    final afterText = InterventionEngine().getRandomMotivation(score);
+    final beforeText = transformation['before'] ?? phraseData['description'] ?? '';
+    final afterText = transformation['after'] ?? InterventionEngine().getRandomMotivation(score);
     final type = transformation['type'] ?? 'Default';
 
     IconData beforeIcon = Icons.sensors_off_outlined;

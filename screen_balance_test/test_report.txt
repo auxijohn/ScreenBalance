@@ -1,0 +1,9 @@
+================================================================
+                ScreenBalance Integration Test Report           
+                Generated: Mon Jun 15 17:08:02 IST 2026
+================================================================
+
+PASS: Onboarding (7-Day Observation Path)
+
+PASS: Onboarding (Instant Quiz Path)
+

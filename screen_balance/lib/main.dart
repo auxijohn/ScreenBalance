@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:ui';
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/auth_screen.dart';
 import 'screens/dashboard_shell.dart';
 import 'screens/intervention_overlay_screen.dart';
+import 'screens/accessibility_permission_screen.dart';
 import 'logic/intervention_engine.dart';
 import 'logic/accountability_dispatcher.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ScreenBalanceApp());
+  SharedPreferences? prefs;
+  try {
+    prefs = await SharedPreferences.getInstance();
+  } catch (e) {
+    debugPrint('Error pre-initializing SharedPreferences: $e');
+  }
+  runApp(ScreenBalanceApp(prefs: prefs));
 }
 
 class ScreenBalanceApp extends StatefulWidget {
-  const ScreenBalanceApp({super.key});
+  final SharedPreferences? prefs;
+  const ScreenBalanceApp({super.key, this.prefs});
 
   @override
   State<ScreenBalanceApp> createState() => _ScreenBalanceAppState();
@@ -20,8 +32,10 @@ class ScreenBalanceApp extends StatefulWidget {
 
 class _ScreenBalanceAppState extends State<ScreenBalanceApp> {
 
-  Map<String, String>? _activeIntervention;
+  final List<Map<String, String>> _activeInterventions = [];
   bool _isAuthenticated = false;
+  bool _isAccessibilityEnabled = true;
+  StreamSubscription<Map<String, String>>? _interventionSubscription;
 
   @override
   void initState() {
@@ -29,13 +43,67 @@ class _ScreenBalanceAppState extends State<ScreenBalanceApp> {
     // Start tracking in the background
     InterventionEngine().startListening();
     AccountabilityDispatcher().startListening();
+
+    // Check accessibility status
+    _checkAccessibility();
+    
+    if (widget.prefs != null) {
+      _isAuthenticated = widget.prefs!.getBool('is_authenticated') ?? false;
+    } else {
+      _loadAuthStatus();
+    }
     
     // Listen for triggers to show the overlay
-    InterventionEngine().interventionStream.stream.listen((data) {
-      setState(() {
-        _activeIntervention = data;
-      });
+    _interventionSubscription = InterventionEngine().interventionStream.stream.listen((data) {
+      if (mounted) {
+        setState(() {
+          final alreadyPresent = _activeInterventions.any((element) => element['triggerId'] == data['triggerId']);
+          if (!alreadyPresent) {
+            _activeInterventions.add(data);
+          }
+        });
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _interventionSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadAuthStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isAuth = prefs.getBool('is_authenticated') ?? false;
+      if (isAuth) {
+        if (mounted) {
+          setState(() {
+            _isAuthenticated = isAuth;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading authentication status: $e');
+    }
+  }
+
+  Future<void> _checkAccessibility() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return;
+    }
+
+    try {
+      const commandChannel = MethodChannel('com.screenbalance.tracker/commands');
+      final isEnabled = await commandChannel.invokeMethod<bool>('isAccessibilityServiceEnabled') ?? false;
+      if (mounted) {
+        setState(() {
+          _isAccessibilityEnabled = isEnabled;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking startup accessibility: $e');
+    }
   }
 
   @override
@@ -54,30 +122,54 @@ class _ScreenBalanceAppState extends State<ScreenBalanceApp> {
       debugShowCheckedModeBanner: false,
       home: Stack(
         children: [
-          // If authenticated, show shell dashboard; otherwise show auth PIN verification/signup
-          _isAuthenticated
-              ? DashboardShell(
-                  onLogout: () {
-                    setState(() {
-                      _isAuthenticated = false;
-                    });
-                  },
-                )
-              : AuthScreen(
-                  onAuthenticated: () {
+          !_isAuthenticated
+              ? AuthScreen(
+                  onAuthenticated: () async {
+                    try {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('is_authenticated', true);
+                    } catch (e) {
+                      debugPrint('Error saving authentication status: $e');
+                    }
                     setState(() {
                       _isAuthenticated = true;
                     });
                   },
-                ),
+                )
+              : (!_isAccessibilityEnabled
+                  ? AccessibilityPermissionScreen(
+                      onPermissionGranted: () {
+                        setState(() {
+                          _isAccessibilityEnabled = true;
+                        });
+                      },
+                    )
+                  : DashboardShell(
+                      onLogout: () async {
+                        try {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('is_authenticated', false);
+                        } catch (e) {
+                          debugPrint('Error clearing authentication status: $e');
+                        }
+                        setState(() {
+                          _isAuthenticated = false;
+                        });
+                      },
+                    )),
           
           // Global Intervention Overlay
-          if (_activeIntervention != null)
+          if (_activeInterventions.isNotEmpty)
             InterventionOverlayScreen(
-              data: _activeIntervention!,
+              interventions: List.from(_activeInterventions),
               onDismissed: () {
                 setState(() {
-                  _activeIntervention = null;
+                  _activeInterventions.clear();
+                });
+              },
+              onDismissSingle: (triggerId) {
+                setState(() {
+                  _activeInterventions.removeWhere((element) => element['triggerId'] == triggerId);
                 });
               },
             ),

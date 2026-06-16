@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'dart:math' as math;
+import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 import '../models/boundary_settings.dart';
@@ -36,6 +37,9 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
 
   // Animation controller for radar pulse
   late AnimationController _radarController;
+  
+  // Real-time telemetry event bus subscription
+  StreamSubscription? _eventSubscription;
 
   // 7-day observation simulation data
   final List<Map<String, dynamic>> _observationDaysData = [
@@ -56,11 +60,19 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
       duration: const Duration(seconds: 3),
     )..repeat();
     _initializeArchetypeData();
+    
+    // Refresh stats when any lock, unlock, app open, or intervention triggers
+    _eventSubscription = InterventionEngine().eventBusStream.stream.listen((event) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
   void dispose() {
     _radarController.dispose();
+    _eventSubscription?.cancel();
     super.dispose();
   }
 

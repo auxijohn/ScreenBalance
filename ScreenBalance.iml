@@ -6,6 +6,9 @@
       <excludeFolder url="file://$MODULE_DIR$/screen_balance/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/screen_balance/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/screen_balance/build" />
+      <excludeFolder url="file://$MODULE_DIR$/screen_balance_test/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/screen_balance_test/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/screen_balance_test/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
