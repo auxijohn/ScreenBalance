@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/conversation.iml" filepath="$PROJECT_DIR$/.idea/conversation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ScreenBalance.iml" filepath="$PROJECT_DIR$/ScreenBalance.iml" />
+      <module fileurl="file://$PROJECT_DIR$/screen_balance/screen_balance.iml" filepath="$PROJECT_DIR$/screen_balance/screen_balance.iml" />
+      <module fileurl="file://$PROJECT_DIR$/screen_balance_test/screen_balance_test.iml" filepath="$PROJECT_DIR$/screen_balance_test/screen_balance_test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/screen_balance/android/screen_balance_android.iml" filepath="$PROJECT_DIR$/screen_balance/android/screen_balance_android.iml" />
     </modules>
   </component>
 </project>

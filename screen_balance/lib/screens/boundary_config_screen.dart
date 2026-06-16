@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
+import 'dart:ui' show ImageFilter;
 import 'package:device_apps/device_apps.dart';
 import '../models/boundary_settings.dart';
 import 'tranquility_success_screen.dart';
-
+import 'dashboard_shell.dart';
+import '../logic/intervention_engine.dart';
 class BoundaryConfigScreen extends StatefulWidget {
   const BoundaryConfigScreen({super.key});
 
@@ -17,6 +19,7 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
   List<Application> _installedApps = [];
   bool _isLoading = true;
   bool _isSchedulesExpanded = false; // Collapsible schedules card state
+  bool _isPartnersExpanded = false; // Collapsible partners card state
 
   final TextEditingController _customAppController = TextEditingController();
   final TextEditingController _contactNameController = TextEditingController();
@@ -38,39 +41,47 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
 
   Future<void> _loadSettings() async {
     final loaded = await BoundarySettings.loadFromStorage();
-    setState(() {
-      _settings = loaded;
-    });
+    if (mounted) {
+      setState(() {
+        _settings = loaded;
+      });
+    }
     await _loadApps();
   }
 
   Future<void> _loadApps() async {
     try {
       if (kIsWeb || (!kIsWeb && !Platform.isAndroid)) {
-        setState(() {
-          _installedApps = [];
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _installedApps = [];
+            _isLoading = false;
+          });
+        }
         return;
       }
 
       List<Application> apps = await DeviceApps.getInstalledApplications(
         includeAppIcons: true,
-        includeSystemApps: false,
+        includeSystemApps: true,
         onlyAppsWithLaunchIntent: true,
       );
 
       apps.sort((a, b) => a.appName.toLowerCase().compareTo(b.appName.toLowerCase()));
 
-      setState(() {
-        _installedApps = apps;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _installedApps = apps;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint("Error loading apps: $e");
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -97,7 +108,7 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
       },
     );
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         if (isBedtime) {
           _settings.targetBedtime = picked;
@@ -315,6 +326,7 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
   }
 
   void _showAndroidAppPickerSheet() {
+    String searchQuery = "";
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -332,7 +344,6 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
               ),
               child: StatefulBuilder(
                 builder: (context, setModalState) {
-                  String searchQuery = "";
                   List<Application> filteredApps = _installedApps.where((app) {
                     final alreadyAdded = _settings.customApps.contains(app.packageName);
                     return !alreadyAdded;
@@ -604,13 +615,49 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
                               ],
                             ),
                           ),
-                          
-                          const SizedBox(height: 24),
-                          const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('ACCOUNTABILITY PARTNERS', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0D47A1), letterSpacing: 1.2, fontSize: 11)),
-                          ),
-                          const SizedBox(height: 10),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 2. standalone collapsible accountability partners card
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Theme(
+                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        initiallyExpanded: _isPartnersExpanded,
+                        onExpansionChanged: (val) {
+                          setState(() {
+                            _isPartnersExpanded = val;
+                          });
+                        },
+                        leading: const Icon(Icons.people_outline, color: Color(0xFF0D47A1), size: 24),
+                        title: const Text(
+                          'Accountability Partners',
+                          style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF0A192F), fontSize: 16),
+                        ),
+                        subtitle: Text(
+                          _isPartnersExpanded ? 'Collapse config' : '${_settings.accountabilityContacts.length} partner(s) configured',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                        children: [
+                          const Divider(height: 10, color: Colors.black12),
+                          const SizedBox(height: 12),
                           
                           // Accountability Inputs
                           Container(
@@ -656,7 +703,7 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
                               ],
                             ),
                           ),
- 
+
                           // Contacts List
                           if (_settings.accountabilityContacts.isNotEmpty) ...[
                             const SizedBox(height: 8),
@@ -744,14 +791,6 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.95),
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.white, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 15,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -789,17 +828,24 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
                                         color: isBedtimeShield ? Colors.indigo : Colors.grey,
                                       ),
                                       const SizedBox(width: 8),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Text('Bedtime Shield', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0A192F))),
-                                          Text(
-                                            isBedtimeShield ? 'Blocks late' : 'No block',
-                                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                                          ),
-                                        ],
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Bedtime Shield',
+                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0A192F)),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              isBedtimeShield ? 'Blocks late' : 'No block',
+                                              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 4),
                                       Transform.scale(
                                         scale: 0.8,
                                         child: Switch(
@@ -823,17 +869,24 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
                                         color: isFocusShield ? Colors.orange[800] : Colors.grey,
                                       ),
                                       const SizedBox(width: 8),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Text('Focus Shield', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0A192F))),
-                                          Text(
-                                            isFocusShield ? 'Blocks active' : 'No block',
-                                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                                          ),
-                                        ],
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Focus Shield',
+                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0A192F)),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              isFocusShield ? 'Blocks active' : 'No block',
+                                              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 4),
                                       Transform.scale(
                                         scale: 0.8,
                                         child: Switch(
@@ -881,21 +934,53 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
                     }),
                   
                   const SizedBox(height: 28),
- 
+
+                  // 3.5. MOTIVATIONAL FOCUS INPUT CARD
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                  ),
+
                   // 4. LARGE SAVE BUTTON
                   ElevatedButton(
                     onPressed: () async {
                       await _settings.saveToStorage();
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Boundaries Saved Successfully!')),
-                      );
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TranquilitySuccessScreen(),
+
+                      // Get custom 5-word personality transformation mapping
+                      final transformation = _getIdentityTransformation();
+
+                      // Show shift transition dialog
+                      final proceed = await showDialog<bool>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => IdentityTransformationDialog(
+                          transformation: transformation,
                         ),
                       );
+
+                      if (proceed == true && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Boundaries Saved Successfully!')),
+                        );
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TranquilitySuccessScreen(),
+                          ),
+                        );
+                        if (result == true && mounted) {
+                          final shellState = context.findAncestorStateOfType<DashboardShellState>();
+                          if (shellState != null) {
+                            shellState.setSelectedIndex(0);
+                          }
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0D47A1),
@@ -971,6 +1056,346 @@ class _BoundaryConfigScreenState extends State<BoundaryConfigScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Map<String, String> _getIdentityTransformation() {
+    final hasBedtime = _settings.targetBedtime != null;
+    final hasBedtimeShield = _settings.categorizedApps['Emotional Distraction']?.isNotEmpty ?? false;
+    final hasFocusSchedule = _settings.focusStartTime != null || _settings.focusEndTime != null;
+    final hasFocusShield = _settings.categorizedApps['Productivity']?.isNotEmpty ?? false;
+    final hasSocialCap = _settings.categorizedApps['Social']?.isNotEmpty ?? false;
+    final hasEntertainmentCap = _settings.categorizedApps['Entertainment']?.isNotEmpty ?? false;
+
+    // adjective pools for natural language
+    const sleepAdj = ['Restful', 'Calm', 'Peaceful', 'Tranquil'];
+    const focusAdj = ['Sharp', 'Clear', 'Focused', 'Determined'];
+    const limitAdj = ['Mindful', 'Balanced', 'Conscious'];
+    const defaultAdj = ['Balanced', 'Mindful', 'Centered'];
+
+    if (hasBedtime || hasBedtimeShield) {
+      final app = _getPrimaryAppName('Emotional Distraction');
+      final adjective = sleepAdj[0];
+      final before = app.isNotEmpty
+          ? "Your $app experience is easing into a $adjective night"
+          : "Your device is easing into a $adjective night";
+      return {
+        'before': before,
+        'after': "You become a $adjective sleep champion",
+        'type': 'Sleep',
+        'title': 'Sleep Quiet Shift',
+      };
+    } else if (hasFocusSchedule || hasFocusShield) {
+      final app = _getPrimaryAppName('Productivity');
+      final adjective = focusAdj[0];
+      final before = app.isNotEmpty
+          ? "Your $app experience is gearing up for $adjective focus"
+          : "Your device is gearing up for $adjective focus";
+      return {
+        'before': before,
+        'after': "You become a $adjective focus champion",
+        'type': 'Focus',
+        'title': 'Focus Mindset Shift',
+      };
+    } else if (hasSocialCap || hasEntertainmentCap) {
+      final cat = hasSocialCap ? 'Social' : 'Entertainment';
+      final app = _getPrimaryAppName(cat);
+      final adjective = limitAdj[0];
+      final before = app.isNotEmpty
+          ? "Your $app usage is drifting, limiting to $adjective time"
+          : "Your usage is drifting, limiting to $adjective time";
+      return {
+        'before': before,
+        'after': "You become a $adjective limit master",
+        'type': 'Limits',
+        'title': 'Mindful Limit Shift',
+      };
+    } else {
+      final adjective = defaultAdj[0];
+      return {
+        'before': "Your digital habits feel $adjective",
+        'after': "You stay $adjective and mindful",
+        'type': 'Default',
+        'title': 'Mindful Shift',
+      };
+    }
+  }
+
+  String _getPrimaryAppName(String category) {
+    final apps = _settings.categorizedApps[category];
+    if (apps != null && apps.isNotEmpty) {
+      final name = _getAppName(apps.first);
+      return name.split(' ').first;
+    }
+    return '';
+  }
+}
+
+class IdentityTransformationDialog extends StatelessWidget {
+  final Map<String, String> transformation;
+
+  const IdentityTransformationDialog({
+    super.key,
+    required this.transformation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Fetch dynamic phrase based on digital mindfulness score
+    final int score = InterventionEngine().getDigitalMindfulnessScore();
+    final Map<String, String> phraseData = InterventionEngine().getMindfulnessPhrase(score);
+    final beforeText = transformation['before'] ?? phraseData['description'] ?? '';
+    final afterText = transformation['after'] ?? InterventionEngine().getRandomMotivation(score);
+    final type = transformation['type'] ?? 'Default';
+
+    IconData beforeIcon = Icons.sensors_off_outlined;
+    IconData afterIcon = Icons.spa_outlined;
+    String transformationTitle = 'Identity Transformation';
+
+    if (type == 'Sleep') {
+      beforeIcon = Icons.nights_stay_outlined;
+      afterIcon = Icons.wb_twilight_outlined;
+      transformationTitle = 'Sleep Quiet Shift';
+    } else if (type == 'Focus') {
+      beforeIcon = Icons.blur_on_outlined;
+      afterIcon = Icons.psychology_outlined;
+      transformationTitle = 'Focus Mindset Shift';
+    } else if (type == 'Limits') {
+      beforeIcon = Icons.hourglass_disabled_outlined;
+      afterIcon = Icons.hourglass_full_outlined;
+      transformationTitle = 'Mindful Limit Shift';
+    }
+
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A192F).withOpacity(0.85),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.12),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF00F2FE).withOpacity(0.1),
+                blurRadius: 40,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00F2FE).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF00F2FE).withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.swap_calls_outlined,
+                    color: Color(0xFF00F2FE),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  transformationTitle.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Based on your custom boundary limits, your digital self is changing.',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                _buildIdentityCard(
+                  context: context,
+                  isBefore: true,
+                  icon: beforeIcon,
+                  title: 'CURRENT STATE',
+                  phrase: beforeText,
+                  glowColor: const Color(0xFFFF5252),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_downward_rounded,
+                      color: Color(0xFF00F2FE),
+                      size: 20,
+                    ),
+                  ),
+                ),
+                _buildIdentityCard(
+                  context: context,
+                  isBefore: false,
+                  icon: afterIcon,
+                  title: 'EVOLVED SELF',
+                  phrase: afterText,
+                  glowColor: const Color(0xFF00F2FE),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00F2FE), Color(0xFF4FACFE)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF00F2FE).withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Text(
+                            'Apply Shift',
+                            style: TextStyle(
+                              color: Color(0xFF0A192F),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIdentityCard({
+    required BuildContext context,
+    required bool isBefore,
+    required IconData icon,
+    required String title,
+    required String phrase,
+    required Color glowColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: glowColor.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: glowColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: glowColor.withOpacity(0.25),
+                width: 1,
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: glowColor,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: glowColor.withOpacity(0.7),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  phrase,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

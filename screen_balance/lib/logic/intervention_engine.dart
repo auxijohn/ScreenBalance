@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'dart:math';
 import '../models/boundary_settings.dart';
 import 'native_tracker.dart';
-
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 class BehavioralEvent {
   final DateTime timestamp;
   final String eventType;
@@ -21,13 +22,19 @@ class BehavioralEvent {
       };
 }
 
+class AppOpenRecord {
+  final String packageName;
+  final DateTime timestamp;
+  AppOpenRecord(this.packageName, this.timestamp);
+}
+
 class InterventionEngine {
   static final InterventionEngine _instance = InterventionEngine._internal();
   factory InterventionEngine() => _instance;
   InterventionEngine._internal();
 
   // Telemetry lists
-  final List<DateTime> _recentAppOpens = [];
+  final List<AppOpenRecord> _recentAppOpens = [];
   final List<DateTime> _recentUnlocks = [];
   final List<DateTime> _recentLocks = [];
   final List<String> _openedAppsInTenMins = [];
@@ -43,17 +50,267 @@ class InterventionEngine {
   DateTime? _firstMorningUnlockTime;
   int _unlockCountToday = 0;
 
+  int get unlockCountToday => _unlockCountToday;
+
+  @visibleForTesting
+  set unlockCountToday(int value) {
+    _unlockCountToday = value;
+  }
+
+  int getDigitalMindfulnessScore() {
+    int score = 100;
+    if (_unlockCountToday > 10) {
+      score -= (_unlockCountToday - 10) * 2;
+    }
+
+    final now = getCurrentTime();
+    final todayInterventionsCount = behavioralHistory.where((event) {
+      return event.eventType == "Intervention Triggered" &&
+          event.timestamp.year == now.year &&
+          event.timestamp.month == now.month &&
+          event.timestamp.day == now.day;
+    }).length;
+
+    score -= todayInterventionsCount * 5;
+
+    return score.clamp(0, 100);
+  }
+
+  Map<String, String> getMindfulnessPhrase(int score) {
+    final Random _rand = Random();
+    List<String> _pick(List<String> options) => [options[_rand.nextInt(options.length)]];
+    if (score >= 90) {
+      return {
+        'title': 'Zen Master',
+        'description': 'Exceptional digital presence. You are fully in control of your screen time.',
+        'motivation': _pick([
+          'You are a beacon of digital balance—keep shining!',
+          'Your focus is crystal clear; let it radiate outward.',
+          'Every moment you manage is a victory of mindfulness.'
+        ]).first
+      };
+    } else if (score >= 75) {
+      return {
+        'title': 'Mindful Practitioner',
+        'description': 'Healthy digital boundaries are keeping you grounded and focused.',
+        'motivation': _pick([
+          'Every mindful step strengthens your focus.',
+          'Consistency builds calm; you are on the right path.',
+          'Your balanced usage inspires inner peace.'
+        ]).first
+      };
+    } else if (score >= 60) {
+      return {
+        'title': 'Seeking Balance',
+        'description': 'Moderate phone checking. Consider activating focus shields to prevent loops.',
+        'motivation': _pick([
+          'Balance is a journey—keep progressing.',
+          'Small adjustments lead to lasting harmony.',
+          'Your effort today seeds tomorrow’s equilibrium.'
+        ]).first
+      };
+    } else if (score >= 40) {
+      return {
+        'title': 'Reactive Scroller',
+        'description': 'High screen reactivity detected. Take brief somatic pauses to break the checking cycle.',
+        'motivation': _pick([
+          'Pause, breathe, and regain control.',
+          'A mindful breath can reset your rhythm.',
+          'Take a moment; your mind deserves calm.'
+        ]).first
+      };
+    } else {
+      return {
+        'title': 'Digital Overload',
+        'description': 'Compulsive phone checking. Turn off notifications and rest your eyes.',
+        'motivation': _pick([
+          'Release the overload—choose calm.',
+          'Step back and let tranquility guide you.',
+          'Quiet moments restore your digital wellbeing.'
+        ]).first
+      };
+    }
+  }
+
+  // Returns a random motivational sentence for the given score
+  String getRandomMotivation(int score) {
+    final Random _rand = Random();
+    List<String> options;
+    if (score >= 90) {
+      options = [
+        'You are a beacon of digital balance—keep shining!',
+        'Your focus is crystal clear; let it radiate outward.',
+        'Every moment you manage is a victory of mindfulness.',
+      ];
+    } else if (score >= 75) {
+      options = [
+        'Every mindful step strengthens your focus.',
+        'Consistency builds calm; you are on the right path.',
+        'Your balanced usage inspires inner peace.',
+      ];
+    } else if (score >= 60) {
+      options = [
+        'Balance is a journey—keep progressing.',
+        'Small adjustments lead to lasting harmony.',
+        'Your effort today seeds tomorrow’s equilibrium.',
+      ];
+    } else if (score >= 40) {
+      options = [
+        'Pause, breathe, and regain control.',
+        'A mindful breath can reset your rhythm.',
+        'Take a moment; your mind deserves calm.',
+      ];
+    } else {
+      options = [
+        'Release the overload—choose calm.',
+        'Step back and let tranquility guide you.',
+        'Quiet moments restore your digital wellbeing.',
+      ];
+    }
+    return options[_rand.nextInt(options.length)];
+  }
+
   // Stream to tell the UI to show an overlay
   final StreamController<Map<String, String>> interventionStream = StreamController.broadcast();
 
   // Stream to notify subscribers of profile updates (Module 8/9/10)
   final StreamController<String> eventBusStream = StreamController.broadcast();
 
+  // Telemetry state variables for advanced scroll/text triggers
+  final List<DateTime> _recentScrolls = [];
+  final List<DateTime> _upwardComparisonScrolls = [];
+  DateTime? _scrollStartTime;
+  DateTime? _lastScrollTime;
+  int _ghostingTypedChars = 0;
+  int _ghostingDeletedChars = 0;
+  String? _lastTextChangeApp;
+  final List<DateTime> _recentContentChanges = [];
+  StreamSubscription<String>? _appOpenSubscription;
+
   void startListening() {
     NativeTracker.initialize();
-    NativeTracker.appOpenStream.stream.listen((packageName) {
-      processAppOpen(packageName);
+    _appOpenSubscription?.cancel();
+    _appOpenSubscription = NativeTracker.appOpenStream.stream.listen((event) {
+      if (event == "DEVICE_LOCK") {
+        processDeviceLock();
+      } else if (event == "DEVICE_UNLOCK") {
+        processDeviceUnlock();
+      } else if (event.startsWith("SCROLL:")) {
+        final packageName = event.substring("SCROLL:".length);
+        processScrollEvent(packageName);
+      } else if (event.startsWith("TEXT_CHANGE:")) {
+        final parts = event.split(":");
+        if (parts.length == 4) {
+          final packageName = parts[1];
+          final added = int.tryParse(parts[2]) ?? 0;
+          final deleted = int.tryParse(parts[3]) ?? 0;
+          processTextChangeEvent(packageName, added, deleted);
+        }
+      } else if (event.startsWith("CONTENT_CHANGE:")) {
+        final packageName = event.substring("CONTENT_CHANGE:".length);
+        processContentChangeEvent(packageName);
+      } else {
+        processAppOpen(event);
+      }
     });
+  }
+
+  void processTextChangeEvent(String packageName, int added, int deleted) {
+    _lastTextChangeApp = packageName;
+    _ghostingTypedChars += added;
+    _ghostingDeletedChars += deleted;
+  }
+
+  Future<void> processScrollEvent(String packageName) async {
+    final now = getCurrentTime();
+    final settings = await BoundarySettings.loadFromStorage();
+
+    String? category;
+    settings.categorizedApps.forEach((key, list) {
+      if (list.contains(packageName)) {
+        category = key;
+      }
+    });
+
+    if (category == null || category == 'Utility') return;
+
+    // ── Interaction Spike ───────────────────────────────────────────────────
+    _recentScrolls.add(now);
+    _recentScrolls.removeWhere((t) => now.difference(t).inSeconds > 5);
+
+    final olderScrolls = _recentScrolls.where((t) => now.difference(t).inMilliseconds > 2500).length;
+    final newerScrolls = _recentScrolls.where((t) => now.difference(t).inMilliseconds <= 2500).length;
+
+    if (olderScrolls >= 2 && newerScrolls >= olderScrolls * 2) {
+      _triggerIntervention(
+        title: "Interaction Spike",
+        message: "Your scrolling speed has increased. This often happens when the nervous system is revving up. Ready to slow down?",
+        somaticReset: "The Weighted Reset: Sit down and press your feet firmly into the floor, feeling the support of the ground for 60 seconds.",
+        triggerId: "interaction_spike",
+      );
+      _recentScrolls.clear();
+      return;
+    }
+
+    // ── The Void ─────────────────────────────────────────────────────────────
+    if (_lastScrollTime != null && now.difference(_lastScrollTime!).inSeconds <= 30) {
+      _scrollStartTime ??= _lastScrollTime;
+      final continuousDuration = now.difference(_scrollStartTime!).inMinutes;
+
+      if (continuousDuration >= 20 || (_simulatedTimeOverride != null && _recentScrolls.length >= 3)) {
+        _triggerIntervention(
+          title: "The Void",
+          message: "You've been scrolling for a while. This can create a 'mental fog.' Let's pull your awareness back to the room.",
+          somaticReset: "The 5-Object Scan: Look away from the screen and find 5 objects in the room that are the same color.",
+          triggerId: "the_void",
+        );
+        _scrollStartTime = null;
+        _lastScrollTime = null;
+        return;
+      }
+    } else {
+      _scrollStartTime = now;
+    }
+    _lastScrollTime = now;
+
+    // ── Upward Comparison ───────────────────────────────────────────────────
+    if (category == 'Social') {
+      _upwardComparisonScrolls.add(now);
+      _upwardComparisonScrolls.removeWhere((t) => now.difference(t).inMinutes > 3);
+      
+      final socialScrollsInThreeMins = _upwardComparisonScrolls.length;
+      if (socialScrollsInThreeMins >= 3 && _ghostingTypedChars == 0) {
+        _triggerIntervention(
+          title: "Upward Comparison Risk",
+          message: "Notice how this content is making you feel. Can we reframe this comparison into curiosity?",
+          somaticReset: "Social Savoring Reframe: A micro-prompt exercise to actively shift from FOMO to positive appreciation.",
+          triggerId: "upward_comparison",
+        );
+        _upwardComparisonScrolls.clear();
+      }
+    }
+  }
+
+  Future<void> processContentChangeEvent(String packageName) async {
+    final now = getCurrentTime();
+    final settings = await BoundarySettings.loadFromStorage();
+
+    final isSocial = settings.categorizedApps['Social']?.contains(packageName) ?? false;
+    if (!isSocial) return;
+
+    // ── Social Spiral ───────────────────────────────────────────────────────
+    _recentContentChanges.add(now);
+    _recentContentChanges.removeWhere((t) => now.difference(t).inMinutes > 2);
+
+    if (_recentContentChanges.length >= 8 || (_simulatedTimeOverride != null && _recentContentChanges.length >= 4)) {
+      _triggerIntervention(
+        title: "Social Spiral",
+        message: "You're looking at a lot of social profiles. This can sometimes trigger subconscious comparison stress. Shall we ground ourselves?",
+        somaticReset: "The Heart-Hand Grounding: Place one hand on your heart and one on your belly. Feel your own breath for 30 seconds.",
+        triggerId: "social_spiral",
+      );
+      _recentContentChanges.clear();
+    }
   }
 
   void setSimulatedTime(DateTime? time) {
@@ -81,12 +338,31 @@ class InterventionEngine {
       detail: detail,
     );
     behavioralHistory.add(event);
-    debugPrint("Logged Event: $eventType - $detail");
+    if (eventType == "Intervention Triggered") {
+      debugPrint("🚨 [Intervention Triggered] $detail");
+    }
     eventBusStream.add("EVENT_NEW_LOGGED_EVENT");
   }
 
   Future<void> processAppOpen(String packageName) async {
+    // ── Ghosting Anxiety Check ──────────────────────────────────────────────
     if (packageName.contains('launcher') || packageName.contains('systemui') || packageName == 'com.example.screen_balance') {
+      if (packageName == 'com.example.screen_balance') {
+        final isResumed = WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+        if (!isResumed) return;
+      }
+      if (_lastTextChangeApp != null && _ghostingTypedChars >= 30 && _ghostingDeletedChars >= _ghostingTypedChars) {
+        _triggerIntervention(
+          title: "Ghosting Anxiety",
+          message: "It looks like you're hesitating on a message. Overthinking can build social tension. Let's take a breath before deciding.",
+          somaticReset: "The 4-7-8 Breath: Inhale for 4s, hold for 7s, exhale for 8s to calm the nervous system.",
+          triggerId: "ghosting_anxiety",
+        );
+      }
+      // Reset buffers when returning to launcher
+      _ghostingTypedChars = 0;
+      _ghostingDeletedChars = 0;
+      _lastTextChangeApp = null;
       return;
     }
 
@@ -94,23 +370,21 @@ class InterventionEngine {
     final settings = await BoundarySettings.loadFromStorage();
 
     // Look up category
-    String category = 'Social';
+    String? category;
     settings.categorizedApps.forEach((key, list) {
       if (list.contains(packageName)) {
         category = key;
       }
     });
 
-    logEvent("App Open", "$packageName ($category)");
+    logEvent("App Open", "$packageName (${category ?? 'Uncategorized'})");
 
     if (category == 'Utility') {
-      debugPrint("InterventionEngine: $packageName is Utility. Exempt.");
       return;
     }
 
     // Check One-Time Somatic Bypass
     if (_somaticResetCompletedOverride) {
-      debugPrint("InterventionEngine: Somatic bypass active. Bypassing check.");
       _somaticResetCompletedOverride = false; // consume it
       return;
     }
@@ -181,6 +455,7 @@ class InterventionEngine {
 
     // 3. Focus Mode Hours Check
     if (category == 'Productivity') {
+      // Removed unused afterText reference; evolved state handled elsewhere
       final start = settings.focusStartTime ?? const TimeOfDay(hour: 9, minute: 0);
       final end = settings.focusEndTime ?? const TimeOfDay(hour: 17, minute: 0);
       if (_isOutsideFocusHours(now, start, end)) {
@@ -208,9 +483,11 @@ class InterventionEngine {
     }
 
     // 5. Dopamine Loop Rule
-    _recentAppOpens.add(now);
-    _recentAppOpens.removeWhere((timestamp) => now.difference(timestamp).inSeconds > 60);
-    if (_recentAppOpens.length >= 3) {
+    _recentAppOpens.add(AppOpenRecord(packageName, now));
+    _recentAppOpens.removeWhere((record) => now.difference(record.timestamp).inSeconds > 60);
+    
+    final uniquePackages = _recentAppOpens.map((record) => record.packageName).toSet();
+    if (uniquePackages.length >= 3) {
       _triggerIntervention(
         title: "Dopamine Loop",
         message: "You're moving fast between apps. This rapid switching can fragment your focus. Ready for a quick reset?",
@@ -318,16 +595,16 @@ class InterventionEngine {
   }
 
   int _getMinutesToBedtime(DateTime now, TimeOfDay bedtime) {
+    if (_isPastBedtime(now, bedtime)) {
+      return 0;
+    }
+    
     final bedMinutes = bedtime.hour * 60 + bedtime.minute;
     final currMinutes = now.hour * 60 + now.minute;
     
     int diff = bedMinutes - currMinutes;
-    if (diff < -720) {
-      // Bedtime in early morning, now is late night
+    if (diff < 0) {
       diff += 1440;
-    } else if (diff > 720) {
-      // Now is early morning, bedtime is night
-      diff -= 1440;
     }
     return diff;
   }

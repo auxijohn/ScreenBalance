@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_description">ScreenBalance Tracker monitors which apps you open to detect distracting behaviors like Doomscrolling or rapid app-switching, helping you build better digital habits.</string>
+</resources>
