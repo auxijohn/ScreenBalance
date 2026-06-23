@@ -43,10 +43,9 @@ class DashboardShellState extends State<DashboardShell> {
     final triggers = [
       {'id': 'dopamine_loop', 'name': 'Dopamine Loop', 'desc': '3+ apps in <60 seconds'},
       {'id': 'the_void', 'name': 'The Void', 'desc': '20+ mins of continuous scrolling'},
-      {'id': 'reactive_mode', 'name': 'Reactive Mode', 'desc': '5+ notification opens in 10 mins'},
+      {'id': 'reactive_mode', 'name': 'Reactive Mode', 'desc': '5+ notification opens in 30 mins'},
       {'id': 'social_spiral', 'name': 'Social Spiral', 'desc': '10+ rapid profile views on social'},
       {'id': 'ghosting_anxiety', 'name': 'Ghosting Anxiety', 'desc': 'Typing, deleting all, closing'},
-      {'id': 'upward_comparison', 'name': 'Upward Comparison Risk', 'desc': 'Prolonged passive social scrolling'},
       {'id': 'midnight_drift', 'name': 'Midnight Drift', 'desc': 'Usage 1 hour past target bedtime'},
       {'id': 'last_scroll_loop', 'name': 'Last Scroll Loop', 'desc': '3+ unlocks in 2 mins at night'},
       {'id': 'work_life_blur', 'name': 'Work-Life Blur', 'desc': 'Slack/Email outside Focus Hours'},
@@ -54,6 +53,7 @@ class DashboardShellState extends State<DashboardShell> {
       {'id': 'novelty_hunt', 'name': 'Novelty Hunt', 'desc': '5+ shopping apps in 10 mins'},
       {'id': 'info_overload', 'name': 'Info Overload', 'desc': '5+ news apps in 15 mins'},
       {'id': 'interaction_spike', 'name': 'Interaction Spike', 'desc': 'Rapid scrolling speed doubling'},
+      {'id': 'daily_cap_limit', 'name': 'Daily Cap Exceeded', 'desc': 'Reaching 15m/30m mindful allowance cap'},
     ];
 
     showModalBottomSheet(

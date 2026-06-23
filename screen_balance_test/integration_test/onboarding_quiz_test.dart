@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:screen_balance/main.dart';
@@ -14,6 +15,23 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Scenario 1 & 2 & 3: Onboarding and Quiz Calibration Test', (WidgetTester tester) async {
+    // Mock MethodChannels
+    const channel = MethodChannel('g123k/device_apps');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (methodCall) async {
+      if (methodCall.method.startsWith('getInstalledApps')) {
+        return [];
+      }
+      return null;
+    });
+
+    const cmdChannel = MethodChannel('com.screenbalance.tracker/commands');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(cmdChannel, (methodCall) async {
+      if (methodCall.method == 'isAccessibilityServiceEnabled') {
+        return true;
+      }
+      return null;
+    });
+
     // 1. Initialize mock SharedPreferences for clean state
     SharedPreferences.setMockInitialValues({});
 
@@ -24,17 +42,14 @@ void main() {
     // Verify Welcome Screen
     expect(find.byElementPredicate((e) => e.widget.runtimeType.toString() == 'WelcomeScreen'), findsOneWidget);
 
-    // Step through the slides
-    final nextBtn = find.text('Next Step').first;
-    await tester.tap(nextBtn);
+    // Skip welcome screen
+    final skipBtn = find.text('Skip');
+    await tester.tap(skipBtn);
     await tester.pump(const Duration(milliseconds: 800));
-    await tester.tap(nextBtn);
+    
+    final unlockBtn = find.text('Unlock Screen Balance →');
+    await tester.tap(unlockBtn);
     await tester.pump(const Duration(milliseconds: 800));
-
-    // Click "Get Started"
-    final getStartedBtn = find.text('Get Started').first;
-    await tester.tap(getStartedBtn);
-    await tester.pump(const Duration(milliseconds: 1000));
 
     // Fill registration details
     await tester.enterText(find.byType(TextFormField).first, 'Quiz User');
@@ -51,14 +66,8 @@ void main() {
     // Verify Calibration Confirmation page
     expect(find.byElementPredicate((e) => e.widget.runtimeType.toString() == 'CalibrationConfirmationScreen'), findsOneWidget);
 
-    // Check the consent box
-    final consentCheckbox = find.byType(CheckboxListTile);
-    await tester.ensureVisible(consentCheckbox);
-    await tester.tap(consentCheckbox);
-    await tester.pump(const Duration(milliseconds: 800));
-
-    // Tap "Initialize & Begin Quiz" to proceed
-    final beginQuizBtn = find.text('Initialize & Begin Quiz');
+    // Tap "Take Instant Quiz (3 mins)" path card to proceed immediately
+    final beginQuizBtn = find.text('Take Instant Quiz (3 mins)');
     await tester.ensureVisible(beginQuizBtn);
     await tester.tap(beginQuizBtn);
     

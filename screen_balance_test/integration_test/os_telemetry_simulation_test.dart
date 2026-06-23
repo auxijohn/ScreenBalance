@@ -21,6 +21,7 @@
 /// ════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:screen_balance/main.dart';
@@ -87,12 +88,7 @@ const List<_TriggerSpec> _allTriggers = [
     resetType: _ResetType.breathing,
   ),
   // ── Need 1 scroll ────────────────────────────────────────────────────────
-  _TriggerSpec(
-    triggerId: 'upward_comparison',
-    displayName: 'Upward Comparison Risk',
-    resetType: _ResetType.tapCounter,
-    tapButtonText: 'I am Mindful of this Comparison',
-  ),
+
   _TriggerSpec(
     triggerId: 'midnight_drift',
     displayName: 'Midnight Drift',
@@ -337,8 +333,25 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-      'OS Telemetry Full Day Simulation — All 13 Triggers',
+      'OS Telemetry Full Day Simulation — All 12 Triggers',
       (WidgetTester tester) async {
+    // Mock the device_apps and commands MethodChannels to prevent native querying hangs
+    const channel = MethodChannel('g123k/device_apps');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (methodCall) async {
+      if (methodCall.method.startsWith('getInstalledApps')) {
+        return [];
+      }
+      return null;
+    });
+
+    const cmdChannel = MethodChannel('com.screenbalance.tracker/commands');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(cmdChannel, (methodCall) async {
+      if (methodCall.method == 'isAccessibilityServiceEnabled') {
+        return true;
+      }
+      return null;
+    });
+
     // ── Setup: pre-calibrated user profile ────────────────────────────────────
     SharedPreferences.setMockInitialValues({
       'user_pin': '1234',
@@ -352,6 +365,14 @@ void main() {
     await tester.pumpWidget(const ScreenBalanceApp());
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 600));
+
+    // Skip WelcomeScreen if present
+    if (find.byElementPredicate((e) => e.widget.runtimeType.toString() == 'WelcomeScreen').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Skip'));
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.tap(find.text('Unlock Screen Balance →'));
+      await tester.pump(const Duration(milliseconds: 800));
+    }
 
     // PIN login
     final pinField = find.byType(TextField);
@@ -376,18 +397,18 @@ void main() {
 
     // 1. Phantom Check — 10+ phone unlocks in 15 mins
     debugPrint('   → Firing: Phantom Check (10+ phantom unlocks)');
-    await _fireTrigger(tester, _allTriggers[9]); // phantom_check
-    final r1 = await _handleOverlay(tester, _allTriggers[9]);
-    _testReport[_allTriggers[9].displayName] = r1;
+    await _fireTrigger(tester, _allTriggers[8]); // phantom_check
+    final r1 = await _handleOverlay(tester, _allTriggers[8]);
+    _testReport[_allTriggers[8].displayName] = r1;
     debugPrint(
         '   ✓ Phantom Check handled (${r1 ? "reset completed" : "snoozed"})');
     await tester.pump(const Duration(milliseconds: 500));
 
     // 2. Info Overload — rapid news browsing (30s timer, snooze)
     debugPrint('   → Firing: Info Overload (5+ news apps)');
-    await _fireTrigger(tester, _allTriggers[11]); // info_overload
-    final r2 = await _handleOverlay(tester, _allTriggers[11]);
-    _testReport[_allTriggers[11].displayName] = r2;
+    await _fireTrigger(tester, _allTriggers[10]); // info_overload
+    final r2 = await _handleOverlay(tester, _allTriggers[10]);
+    _testReport[_allTriggers[10].displayName] = r2;
     debugPrint(
         '   ✓ Info Overload handled (${r2 ? "reset completed" : "snoozed"})');
     await tester.pump(const Duration(milliseconds: 500));
@@ -397,9 +418,9 @@ void main() {
 
     // 3. Work-Life Blur — Slack outside focus hours
     debugPrint('   → Firing: Work-Life Blur (Slack/Email outside focus hours)');
-    await _fireTrigger(tester, _allTriggers[8]); // work_life_blur
-    final r3 = await _handleOverlay(tester, _allTriggers[8]);
-    _testReport[_allTriggers[8].displayName] = r3;
+    await _fireTrigger(tester, _allTriggers[7]); // work_life_blur
+    final r3 = await _handleOverlay(tester, _allTriggers[7]);
+    _testReport[_allTriggers[7].displayName] = r3;
     debugPrint(
         '   ✓ Work-Life Blur handled (${r3 ? "reset completed" : "snoozed"})');
     await tester.pump(const Duration(milliseconds: 500));
@@ -443,15 +464,7 @@ void main() {
         '   ✓ Ghosting Anxiety handled (${r7 ? "reset completed" : "snoozed"})');
     await tester.pump(const Duration(milliseconds: 500));
 
-    // 8. Upward Comparison Risk — passive scrolling comparison
-    debugPrint(
-        '   → Firing: Upward Comparison Risk (prolonged passive social scroll)');
-    await _fireTrigger(tester, _allTriggers[5]); // upward_comparison
-    final r8 = await _handleOverlay(tester, _allTriggers[5]);
-    _testReport[_allTriggers[5].displayName] = r8;
-    debugPrint(
-        '   ✓ Upward Comparison handled (${r8 ? "reset completed" : "snoozed"})');
-    await tester.pump(const Duration(milliseconds: 500));
+
 
     // ── 🌙 EVENING ───────────────────────────────────────────────────────────
     debugPrint('🌙 EVENING (6–10 PM)');
@@ -467,9 +480,9 @@ void main() {
 
     // 10. Novelty Hunt — shopping app hopping
     debugPrint('   → Firing: Novelty Hunt (5+ shopping apps in 10 min)');
-    await _fireTrigger(tester, _allTriggers[10]); // novelty_hunt
-    final r10 = await _handleOverlay(tester, _allTriggers[10]);
-    _testReport[_allTriggers[10].displayName] = r10;
+    await _fireTrigger(tester, _allTriggers[9]); // novelty_hunt
+    final r10 = await _handleOverlay(tester, _allTriggers[9]);
+    _testReport[_allTriggers[9].displayName] = r10;
     debugPrint(
         '   ✓ Novelty Hunt handled (${r10 ? "reset completed" : "snoozed"})');
     await tester.pump(const Duration(milliseconds: 500));
@@ -480,27 +493,27 @@ void main() {
     // 11. Midnight Drift — past quiet hours
     debugPrint(
         '   → Firing: Midnight Drift (usage 1 hour past target bedtime)');
-    await _fireTrigger(tester, _allTriggers[6]); // midnight_drift
-    final r11 = await _handleOverlay(tester, _allTriggers[6]);
-    _testReport[_allTriggers[6].displayName] = r11;
+    await _fireTrigger(tester, _allTriggers[5]); // midnight_drift
+    final r11 = await _handleOverlay(tester, _allTriggers[5]);
+    _testReport[_allTriggers[5].displayName] = r11;
     debugPrint(
         '   ✓ Midnight Drift handled (${r11 ? "reset completed" : "snoozed"})');
     await tester.pump(const Duration(milliseconds: 500));
 
     // 12. Interaction Spike — rapid scrolling speed doubling
     debugPrint('   → Firing: Interaction Spike (scrolling speed doubling)');
-    await _fireTrigger(tester, _allTriggers[12]); // interaction_spike
-    final r12 = await _handleOverlay(tester, _allTriggers[12]);
-    _testReport[_allTriggers[12].displayName] = r12;
+    await _fireTrigger(tester, _allTriggers[11]); // interaction_spike
+    final r12 = await _handleOverlay(tester, _allTriggers[11]);
+    _testReport[_allTriggers[11].displayName] = r12;
     debugPrint(
         '   ✓ Interaction Spike handled (${r12 ? "reset completed" : "snoozed"})');
     await tester.pump(const Duration(milliseconds: 500));
 
     // 13. Last Scroll Loop — 3+ unlocks in 2 mins at night
     debugPrint('   → Firing: Last Scroll Loop (3+ night unlocks in 2 min)');
-    await _fireTrigger(tester, _allTriggers[7]); // last_scroll_loop
-    final r13 = await _handleOverlay(tester, _allTriggers[7]);
-    _testReport[_allTriggers[7].displayName] = r13;
+    await _fireTrigger(tester, _allTriggers[6]); // last_scroll_loop
+    final r13 = await _handleOverlay(tester, _allTriggers[6]);
+    _testReport[_allTriggers[6].displayName] = r13;
     debugPrint(
         '   ✓ Last Scroll Loop handled (${r13 ? "reset completed" : "snoozed"})');
     await tester.pump(const Duration(milliseconds: 500));
@@ -512,12 +525,12 @@ void main() {
       reason: 'DashboardShell must be intact after all 13 trigger simulations.',
     );
 
-    expect(_testReport.length, equals(13),
-        reason: 'All 13 triggers must have been tested.');
+    expect(_testReport.length, equals(12),
+        reason: 'All 12 triggers must have been tested.');
 
     _printReport();
 
     debugPrint(
-        '🎉 OS TELEMETRY SIMULATION COMPLETE — All 13 triggers verified!');
+        '🎉 OS TELEMETRY SIMULATION COMPLETE — All 12 triggers verified!');
   });
 }

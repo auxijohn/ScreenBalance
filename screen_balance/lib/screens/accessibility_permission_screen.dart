@@ -134,7 +134,7 @@ class _AccessibilityPermissionScreenState extends State<AccessibilityPermissionS
                 
                 // Subtitle
                 Text(
-                  'To protect your attention spans, Screen-Balance requires the Accessibility Service to detect scroll loops, passive scrolling, and hesitation in distracting apps.',
+                  'To protect your attention spans, ScreenBalance requires Accessibility Service to detect scroll loops, passive scrolling, and app switching.',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.7),
@@ -143,15 +143,15 @@ class _AccessibilityPermissionScreenState extends State<AccessibilityPermissionS
                   textAlign: TextAlign.center,
                 ),
                 
-                const Spacer(),
+                const SizedBox(height: 16),
                 
                 // Guide steps
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.08)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,13 +159,13 @@ class _AccessibilityPermissionScreenState extends State<AccessibilityPermissionS
                       const Text(
                         'HOW TO ENABLE IT:',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: Colors.white60,
                           letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildStep(1, 'Tap the button below to open system settings'),
                       _buildStep(2, 'Navigate to "Installed apps" or "Downloaded services"'),
                       _buildStep(3, 'Select "screen_balance" and switch it ON'),

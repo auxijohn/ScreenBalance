@@ -11,6 +11,27 @@ class InsightsDashboardScreen extends StatefulWidget {
 }
 
 class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
+  Widget _buildGlassCard({required Widget child, EdgeInsetsGeometry? padding, double borderRadius = 28}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: padding ?? const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.12),
+              width: 1.5,
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   // Mock data for graphs if history is empty
   int _lastScrollCount = 0;
   int _phantomCheckCount = 0;
@@ -117,20 +138,9 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                   const SizedBox(height: 20),
 
                   // Circadian Core Score Card
-                  Container(
+                  _buildGlassCard(
                     padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: Colors.white.withOpacity(0.9), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
+                    borderRadius: 28,
                     child: Row(
                       children: [
                         // Circular Indicator
@@ -143,8 +153,8 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                               child: CircularProgressIndicator(
                                 value: 0.82,
                                 strokeWidth: 8,
-                                backgroundColor: const Color(0xFF0D47A1).withOpacity(0.1),
-                                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0D47A1)),
+                                backgroundColor: Colors.white.withOpacity(0.1),
+                                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00F2FE)),
                               ),
                             ),
                             const Text(
@@ -152,7 +162,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF0A192F),
+                                color: Colors.white,
                               ),
                             ),
                           ],
@@ -167,7 +177,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF0A192F),
+                                  color: Colors.white,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -175,7 +185,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                                 'Your sleep boundaries are highly stable. Continue avoiding midday dopamine loops to protect bedtime ease.',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: const Color(0xFF0F172A).withOpacity(0.8),
+                                  color: Colors.white.withOpacity(0.7),
                                   height: 1.3,
                                 ),
                               ),
@@ -195,7 +205,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                           title: "Avg Wakeup",
                           value: "07:15 AM",
                           icon: Icons.wb_sunny_outlined,
-                          color: Colors.amber[700]!,
+                          color: Colors.amberAccent,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -204,7 +214,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                           title: "Bedtime Goal",
                           value: "11:30 PM",
                           icon: Icons.nights_stay_outlined,
-                          color: Colors.indigo[600]!,
+                          color: Colors.indigo[300]!,
                         ),
                       ),
                     ],
@@ -212,20 +222,9 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                   const SizedBox(height: 20),
 
                   // Weekly Sleep Quality Chart
-                  Container(
+                  _buildGlassCard(
                     padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: Colors.white.withOpacity(0.9), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
+                    borderRadius: 28,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -234,7 +233,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0D47A1),
+                            color: Color(0xFF00F2FE),
                             letterSpacing: 1.2,
                           ),
                         ),
@@ -261,20 +260,9 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                   const SizedBox(height: 20),
 
                   // Trigger Analytics Breakdowns
-                  Container(
+                  _buildGlassCard(
                     padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: Colors.white.withOpacity(0.9), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
+                    borderRadius: 28,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -283,36 +271,25 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0D47A1),
+                            color: Color(0xFF00F2FE),
                             letterSpacing: 1.2,
                           ),
                         ),
                         const SizedBox(height: 16),
                         _buildTriggerIndicator("Phantom Check", _phantomCheckCount, 10, Colors.deepOrangeAccent),
                         const SizedBox(height: 12),
-                        _buildTriggerIndicator("Dopamine Loop", _dopamineLoopCount, 10, Colors.amber[700]!),
+                        _buildTriggerIndicator("Dopamine Loop", _dopamineLoopCount, 10, Colors.amber[400]!),
                         const SizedBox(height: 12),
-                        _buildTriggerIndicator("Last Scroll Loop", _lastScrollCount, 10, Colors.indigo[600]!),
+                        _buildTriggerIndicator("Last Scroll Loop", _lastScrollCount, 10, Colors.indigo[300]!),
                       ],
                     ),
                   ),
                   const SizedBox(height: 20),
 
                   // Real-time Event Log list
-                  Container(
+                  _buildGlassCard(
                     padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: Colors.white.withOpacity(0.9), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
+                    borderRadius: 28,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -321,7 +298,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0D47A1),
+                            color: Color(0xFF00F2FE),
                             letterSpacing: 1.2,
                           ),
                         ),
@@ -332,7 +309,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                             child: Text(
                               'No logged telemetry events. Interact with apps or locks to populate.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              style: TextStyle(fontSize: 12, color: Colors.white54),
                             ),
                           )
                         else
@@ -340,7 +317,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: _recentEvents.length,
-                            separatorBuilder: (context, index) => const Divider(height: 12, color: Colors.black12),
+                            separatorBuilder: (context, index) => const Divider(height: 12, color: Colors.white10),
                             itemBuilder: (context, index) {
                               final event = _recentEvents[index];
                               final timeStr = "${event.timestamp.hour.toString().padLeft(2, '0')}:${event.timestamp.minute.toString().padLeft(2, '0')}";
@@ -349,7 +326,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF0D47A1).withOpacity(0.08),
+                                      color: Colors.white.withOpacity(0.05),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
@@ -357,7 +334,9 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                                           ? Icons.warning_amber_rounded 
                                           : Icons.info_outline,
                                       size: 16,
-                                      color: const Color(0xFF0D47A1),
+                                      color: event.eventType.contains("Triggered") 
+                                          ? Colors.orangeAccent 
+                                          : const Color(0xFF00F2FE),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -370,19 +349,19 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
                                           style: const TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0A192F),
+                                            color: Colors.white,
                                           ),
                                         ),
                                         Text(
                                           event.detail,
-                                          style: TextStyle(fontSize: 11, color: const Color(0xFF0F172A).withOpacity(0.7)),
+                                          style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7)),
                                         ),
                                       ],
                                     ),
                                   ),
                                   Text(
                                     timeStr,
-                                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                    style: const TextStyle(fontSize: 11, color: Colors.white60),
                                   ),
                                 ],
                               );
@@ -407,20 +386,9 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
     required IconData icon,
     required Color color,
   }) {
-    return Container(
+    return _buildGlassCard(
+      borderRadius: 24,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.9), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -431,13 +399,13 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w900,
-              color: Color(0xFF0A192F),
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 11, color: Colors.white60, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -457,7 +425,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
               end: Alignment.topCenter,
               colors: [
                 Color(0xFF0D47A1),
-                Color(0xFF42A5F5),
+                Color(0xFF00F2FE),
               ],
             ),
             borderRadius: BorderRadius.circular(8),
@@ -466,7 +434,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF0A192F)),
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white60),
         ),
       ],
     );
@@ -480,7 +448,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0A192F))),
+            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
             Text('$value pings', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
           ],
         ),
@@ -488,7 +456,7 @@ class _InsightsDashboardScreenState extends State<InsightsDashboardScreen> {
         Container(
           height: 6,
           decoration: BoxDecoration(
-            color: const Color(0xFF0A192F).withOpacity(0.06),
+            color: Colors.white.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: FractionallySizedBox(

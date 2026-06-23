@@ -38,6 +38,9 @@ class MainActivity: FlutterActivity() {
                         "CONTENT_CHANGE" -> {
                             eventSink?.success("CONTENT_CHANGE:$packageName")
                         }
+                        "NOTIFICATION" -> {
+                            eventSink?.success("NOTIFICATION:$packageName")
+                        }
                         else -> {
                             eventSink?.success(packageName)
                         }
@@ -65,6 +68,12 @@ class MainActivity: FlutterActivity() {
                 "openAccessibilitySettings" -> {
                     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    context.startActivity(intent)
+                    result.success(true)
+                }
+                "bringToForeground" -> {
+                    val intent = Intent(context, MainActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                     context.startActivity(intent)
                     result.success(true)
                 }

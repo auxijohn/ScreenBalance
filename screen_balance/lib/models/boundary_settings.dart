@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../logic/timezone_location_helper.dart';
 
 class BoundarySettings {
   TimeOfDay? targetBedtime;
   TimeOfDay? focusStartTime;
   TimeOfDay? focusEndTime;
   int morningBufferMinutes;
+  bool syncFocusWithSun;
 
   final Map<String, List<String>> categorizedApps;
   List<String> accountabilityContacts;
@@ -17,6 +19,7 @@ class BoundarySettings {
     this.focusStartTime,
     this.focusEndTime,
     this.morningBufferMinutes = 30,
+    this.syncFocusWithSun = false,
     Map<String, List<String>>? categorizedApps,
     List<String>? accountabilityContacts,
     List<String>? customApps,
@@ -33,14 +36,16 @@ class BoundarySettings {
 
   static Future<BoundarySettings> loadFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
     
     final bedtimeStr = prefs.getString('targetBedtime');
     final focusStartStr = prefs.getString('focusStartTime');
     final focusEndStr = prefs.getString('focusEndTime');
     final buffer = prefs.getInt('morningBufferMinutes') ?? 30;
+    final syncSun = prefs.getBool('syncFocusWithSun') ?? false;
     
-    final contacts = prefs.getStringList('accountabilityContacts') ?? [];
-    final customAppsList = prefs.getStringList('customApps') ?? [];
+    final contacts = (prefs.getStringList('accountabilityContacts') ?? []).toList();
+    final customAppsList = (prefs.getStringList('customApps') ?? []).toList();
 
     final categorizedStr = prefs.getString('categorizedApps');
     Map<String, List<String>> catApps = {
@@ -69,6 +74,7 @@ class BoundarySettings {
       focusStartTime: _stringToTime(focusStartStr),
       focusEndTime: _stringToTime(focusEndStr),
       morningBufferMinutes: buffer,
+      syncFocusWithSun: syncSun,
       categorizedApps: catApps,
       accountabilityContacts: contacts,
       customApps: customAppsList,
@@ -81,9 +87,26 @@ class BoundarySettings {
     await prefs.setString('focusStartTime', _timeToString(focusStartTime) ?? '');
     await prefs.setString('focusEndTime', _timeToString(focusEndTime) ?? '');
     await prefs.setInt('morningBufferMinutes', morningBufferMinutes);
+    await prefs.setBool('syncFocusWithSun', syncFocusWithSun);
     await prefs.setStringList('accountabilityContacts', accountabilityContacts);
     await prefs.setStringList('customApps', customApps);
     await prefs.setString('categorizedApps', json.encode(categorizedApps));
+  }
+
+  Future<TimeOfDay?> getEffectiveFocusStartTime() async {
+    if (syncFocusWithSun) {
+      final sunTimes = await TimezoneLocationHelper.getTodaySunriseSunset();
+      return sunTimes['sunrise'];
+    }
+    return focusStartTime;
+  }
+
+  Future<TimeOfDay?> getEffectiveFocusEndTime() async {
+    if (syncFocusWithSun) {
+      final sunTimes = await TimezoneLocationHelper.getTodaySunriseSunset();
+      return sunTimes['sunset'];
+    }
+    return focusEndTime;
   }
 
   static Future<void> clearFromStorage() async {
@@ -92,6 +115,7 @@ class BoundarySettings {
     await prefs.remove('focusStartTime');
     await prefs.remove('focusEndTime');
     await prefs.remove('morningBufferMinutes');
+    await prefs.remove('syncFocusWithSun');
     await prefs.remove('accountabilityContacts');
     await prefs.remove('customApps');
     await prefs.remove('categorizedApps');

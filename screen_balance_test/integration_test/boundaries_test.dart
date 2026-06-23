@@ -7,18 +7,43 @@ import 'package:screen_balance/screens/dashboard_shell.dart';
 import 'package:screen_balance/screens/boundary_config_screen.dart';
 import 'package:screen_balance/screens/profile_card_screen.dart';
 import 'package:screen_balance/screens/tranquility_success_screen.dart';
+import 'package:screen_balance/screens/schedules_screen.dart';
+import 'package:screen_balance/screens/accountability_screen.dart';
+import 'package:screen_balance/screens/balanced_apps_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Scenario 5 & 6: Boundaries Settings and Identity Evolution Test', (WidgetTester tester) async {
-    // Mock the device_apps MethodChannel to prevent native querying hangs on modern emulators
+    // Mock the device_apps MethodChannel to prevent native querying hangs on modern emulators and return mock Notion app
     const channel = MethodChannel('g123k/device_apps');
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (methodCall) async {
       print('DEBUG: MethodChannel call on g123k/device_apps: ${methodCall.method}');
       if (methodCall.method.startsWith('getInstalledApps')) {
-        return [];
+        return [
+          {
+            'app_name': 'Notion',
+            'package_name': 'com.notion.id',
+            'apk_file_path': '/path/to/apk',
+            'version_name': '1.0',
+            'version_code': 1,
+            'data_dir': '/data/data/com.notion.id',
+            'system_app': false,
+            'install_time': 0,
+            'update_time': 0,
+            'is_enabled': true,
+            'category': 7, // productivity
+          }
+        ];
+      }
+      return null;
+    });
+
+    const cmdChannel = MethodChannel('com.screenbalance.tracker/commands');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(cmdChannel, (methodCall) async {
+      if (methodCall.method == 'isAccessibilityServiceEnabled') {
+        return true;
       }
       return null;
     });
@@ -32,6 +57,14 @@ void main() {
     // 2. Launch the app and settle
     await tester.pumpWidget(const ScreenBalanceApp());
     await tester.pump(const Duration(milliseconds: 1000));
+
+    // Skip WelcomeScreen if present
+    if (find.byElementPredicate((e) => e.widget.runtimeType.toString() == 'WelcomeScreen').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Skip'));
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.tap(find.text('Unlock Screen Balance →'));
+      await tester.pump(const Duration(milliseconds: 800));
+    }
 
     print('DEBUG: Before login - Active screens in tree:');
     print('WelcomeScreen: ${find.byElementPredicate((e) => e.widget.runtimeType.toString() == 'WelcomeScreen').evaluate().isNotEmpty}');
@@ -96,7 +129,7 @@ void main() {
     expect(find.text('Schedules & Sleep Quiet'), findsOneWidget, 
         reason: 'Schedules & Sleep Quiet tile must be visible after loading.');
 
-    // Expand Schedules & Sleep Quiet section
+    // Expand/navigate to Schedules & Sleep Quiet section
     final schedulesTile = find.text('Schedules & Sleep Quiet');
     print('DEBUG: Tapping schedulesTile...');
     await tester.tap(schedulesTile);
@@ -104,87 +137,97 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
     print('DEBUG: Pump after schedulesTile done.');
 
+    // Pop SchedulesScreen to return to BoundaryConfigScreen
+    print('DEBUG: Popping SchedulesScreen...');
+    Navigator.pop(tester.element(find.byType(SchedulesScreen)));
+    await tester.pump(const Duration(milliseconds: 800));
+
     // Expand and configure Accountability Partners section
-    final scrollable = find.byType(Scrollable).first;
     final partnersExpansionTile = find.text('Accountability Partners');
     print('DEBUG: Ensuring visible: Accountability Partners...');
     await tester.ensureVisible(partnersExpansionTile);
-    print('DEBUG: Ensuring visible done, pumping...');
     await tester.pump(const Duration(milliseconds: 800));
     print('DEBUG: Tapping Accountability Partners...');
     await tester.tap(partnersExpansionTile);
-    print('DEBUG: Tapping Accountability Partners done, pumping...');
     await tester.pump(const Duration(milliseconds: 1000));
-    print('DEBUG: Pump after Accountability Partners done.');
 
     // Enter accountability partner name and contact
     final partnerNameInput = find.byType(TextField).at(0);
     final partnerContactInput = find.byType(TextField).at(1);
     print('DEBUG: Ensuring visible: partnerNameInput...');
     await tester.ensureVisible(partnerNameInput);
-    print('DEBUG: Ensuring visible partnerNameInput done, pumping...');
     await tester.pump(const Duration(milliseconds: 800));
     print('DEBUG: Entering text for partnerNameInput...');
     await tester.enterText(partnerNameInput, 'Sarah');
-    print('DEBUG: Entering text done.');
     
     print('DEBUG: Ensuring visible: partnerContactInput...');
     await tester.ensureVisible(partnerContactInput);
-    print('DEBUG: Ensuring visible partnerContactInput done, pumping...');
     await tester.pump(const Duration(milliseconds: 800));
     print('DEBUG: Entering text for partnerContactInput...');
     await tester.enterText(partnerContactInput, 'sarah@test.com');
-    print('DEBUG: Entering text done, closing keyboard...');
     FocusManager.instance.primaryFocus?.unfocus(); // Close keyboard
     await tester.pump(const Duration(milliseconds: 800));
-    print('DEBUG: Closed keyboard.');
 
     // Tap Add Partner button
     final addPartnerBtn = find.text('Add Partner');
-    print('DEBUG: Ensuring visible: Add Partner...');
-    await tester.ensureVisible(addPartnerBtn);
-    await tester.pump(const Duration(milliseconds: 800));
     print('DEBUG: Tapping Add Partner...');
     await tester.tap(addPartnerBtn);
-    print('DEBUG: Pumping after tapping Add Partner...');
     await tester.pump(const Duration(milliseconds: 800));
-    print('DEBUG: Tapping Add Partner done.');
 
     // Verify accountability partner item rendered on screen
     expect(find.text('Sarah (sarah@test.com)'), findsOneWidget);
     print('DEBUG: Verified Sarah (sarah@test.com) is rendered.');
 
-    // Toggle app list picker
+    // Pop AccountabilityScreen to return to BoundaryConfigScreen
+    print('DEBUG: Popping AccountabilityScreen...');
+    Navigator.pop(tester.element(find.byType(AccountabilityScreen)));
+    await tester.pump(const Duration(milliseconds: 800));
+
+    // Navigate to Balanced Applications
+    final balancedAppsBanner = find.text('Balanced Applications');
+    print('DEBUG: Ensuring visible: Balanced Applications...');
+    await tester.ensureVisible(balancedAppsBanner);
+    await tester.pump(const Duration(milliseconds: 800));
+    print('DEBUG: Tapping Balanced Applications...');
+    await tester.tap(balancedAppsBanner);
+    await tester.pump(const Duration(milliseconds: 1000));
+
+    // Toggle app list picker (tap Add App button on BalancedAppsScreen)
     final addAppButton = find.text('Add App');
     print('DEBUG: Ensuring visible: Add App...');
     await tester.ensureVisible(addAppButton);
     await tester.pump(const Duration(milliseconds: 800));
     print('DEBUG: Tapping Add App...');
     await tester.tap(addAppButton);
-    print('DEBUG: Pumping after tapping Add App...');
     await tester.pump(const Duration(milliseconds: 1000));
-    print('DEBUG: Tapping Add App done.');
 
-    // Handle fallback application dialog
+    // Handle application dialog or bottom sheet
     final fallbackDialogTitle = find.text('Add Application');
+    final sheetTitle = find.text('Add App from Device');
+    
     if (fallbackDialogTitle.evaluate().isNotEmpty) {
       print('DEBUG: Handling fallback dialog title "Add Application"...');
       final notionPresetChip = find.text('Notion');
       await tester.tap(notionPresetChip);
       await tester.pump(const Duration(milliseconds: 800));
       print('DEBUG: Tapped Notion chip and pumped.');
+    } else if (sheetTitle.evaluate().isNotEmpty) {
+      print('DEBUG: Handling Android bottom sheet "Add App from Device"...');
+      final notionListItem = find.text('Notion');
+      await tester.tap(notionListItem);
+      await tester.pump(const Duration(milliseconds: 800));
+      print('DEBUG: Tapped Notion list item and pumped.');
     } else {
-      print('DEBUG: Finding closeBtn (Icons.close)...');
-      final closeBtn = find.byIcon(Icons.close);
-      if (closeBtn.evaluate().isNotEmpty) {
-        print('DEBUG: closeBtn found, tapping...');
-        await tester.tap(closeBtn);
-        await tester.pump(const Duration(milliseconds: 800));
-        print('DEBUG: Tapped closeBtn and pumped.');
-      } else {
-        print('DEBUG: closeBtn NOT found.');
-      }
+      fail('Neither Add Application dialog nor Add App from Device bottom sheet was found.');
     }
+
+    // Verify Notion is added on BalancedAppsScreen
+    expect(find.text('Notion'), findsOneWidget);
+
+    // Pop BalancedAppsScreen to return to BoundaryConfigScreen
+    print('DEBUG: Popping BalancedAppsScreen...');
+    Navigator.pop(tester.element(find.byType(BalancedAppsScreen)));
+    await tester.pump(const Duration(milliseconds: 800));
 
     // Tap Save & Apply Limits button to launch Identity Transformation
     final saveLimitsBtn = find.text('Save & Apply Limits');
