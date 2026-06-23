@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_balance/main.dart';
 import 'package:screen_balance/screens/calibration_confirmation_screen.dart';
@@ -18,28 +19,42 @@ void main() {
 
     // Verify that the title text is present.
     expect(find.text('ScreenBalance'), findsWidgets);
-    expect(find.text('The Dopamine Loop'), findsOneWidget);
-    expect(find.text('Privacy & Offline Guarantee'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is RichText && widget.text.toPlainText().contains('People pick up their phone without any reason'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Skip'), findsOneWidget);
   });
 
   testWidgets('Signup form navigation to CalibrationConfirmationScreen', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
+    
+    // Mock accessibility permission method channel
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('com.screenbalance.tracker/commands'),
+      (MethodCall methodCall) async {
+        if (methodCall.method == 'isAccessibilityServiceEnabled') {
+          return true;
+        }
+        return null;
+      },
+    );
+
     await tester.pumpWidget(const ScreenBalanceApp());
     await tester.pumpAndSettle();
 
-    // Tap "Next Step" twice to go to the final slide, then tap "Get Started"
-    final nextStepButton = find.text('Next Step');
-    expect(nextStepButton, findsOneWidget);
-    await tester.tap(nextStepButton);
-    await tester.pumpAndSettle();
-    
-    expect(nextStepButton, findsOneWidget);
-    await tester.tap(nextStepButton);
+    // Tap "Skip" button to go to final quote
+    final skipButton = find.text('Skip');
+    expect(skipButton, findsOneWidget);
+    await tester.tap(skipButton);
     await tester.pumpAndSettle();
 
-    final getStartedButton = find.text('Get Started');
-    expect(getStartedButton, findsOneWidget);
-    await tester.tap(getStartedButton);
+    // Tap "Unlock Screen Balance →"
+    final unlockButton = find.text('Unlock Screen Balance →');
+    expect(unlockButton, findsOneWidget);
+    await tester.tap(unlockButton);
     await tester.pumpAndSettle();
 
     // Fill out form fields
@@ -125,7 +140,7 @@ void main() {
     // Test moderate state (15 unlocks -> 10 unlocks are free, 5 subtract 2 points each = 90)
     engine.unlockCountToday = 15;
     expect(engine.getDigitalMindfulnessScore(), equals(90));
-    expect(engine.getMindfulnessPhrase(90)['title'], equals('Zen Master'));
+    expect(engine.getMindfulnessPhrase(90)['title'], equals('Zen Practitioner'));
 
     // Test low state (20 unlocks -> -20 points, plus 2 interventions today -> -10 points = 70 score)
     engine.unlockCountToday = 20;

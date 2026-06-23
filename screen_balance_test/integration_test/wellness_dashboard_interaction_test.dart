@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:screen_balance/main.dart';
+import 'package:screen_balance/screens/welcome_screen.dart';
 import 'package:screen_balance/logic/intervention_engine.dart';
 import 'package:screen_balance/logic/native_tracker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,6 +56,14 @@ void main() {
     await tester.pumpWidget(const ScreenBalanceApp());
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 600));
+
+    // Skip WelcomeScreen if present
+    if (find.byType(WelcomeScreen).evaluate().isNotEmpty) {
+      await tester.tap(find.text('Skip'));
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.tap(find.text('Unlock Screen Balance →'));
+      await tester.pump(const Duration(milliseconds: 800));
+    }
 
     // Enter PIN
     final pinField = find.byType(TextField);
@@ -126,6 +135,14 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 600));
 
+    // Skip WelcomeScreen if present
+    if (find.byType(WelcomeScreen).evaluate().isNotEmpty) {
+      await tester.tap(find.text('Skip'));
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.tap(find.text('Unlock Screen Balance →'));
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+
     // Enter PIN
     final pinField = find.byType(TextField);
     expect(pinField, findsOneWidget);
@@ -153,8 +170,16 @@ void main() {
     NativeTracker.appOpenStream.add('com.twitter.android');
     await tester.pump(const Duration(milliseconds: 400));
 
-    // Open Facebook -> triggers Dopamine Loop
+    // Open Facebook
     NativeTracker.appOpenStream.add('com.facebook.katana');
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Open Reddit
+    NativeTracker.appOpenStream.add('com.reddit.frontpage');
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Open Snapchat -> triggers Dopamine Loop (needs 5 apps to make 4 switches)
+    NativeTracker.appOpenStream.add('com.snapchat.android');
     await tester.pump(const Duration(milliseconds: 400));
 
     // Allow overlay to build

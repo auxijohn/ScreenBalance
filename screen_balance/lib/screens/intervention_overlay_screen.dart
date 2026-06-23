@@ -74,7 +74,8 @@ class _InterventionOverlayScreenState extends State<InterventionOverlayScreen> w
         triggerId == 'last_scroll_loop' ||
         triggerId == 'work_life_blur' || 
         triggerId == 'novelty_hunt' || 
-        triggerId == 'interaction_spike') {
+        triggerId == 'interaction_spike' ||
+        triggerId == 'daily_cap_limit') {
       _secondsRemainingMap[triggerId] = 60;
       _startTimerFor(triggerId);
     } else if (triggerId == 'info_overload') {
@@ -104,7 +105,7 @@ class _InterventionOverlayScreenState extends State<InterventionOverlayScreen> w
     }
 
     // 3. Tap/Counter
-    if (triggerId == 'phantom_check' || triggerId == 'upward_comparison') {
+    if (triggerId == 'phantom_check') {
       _tapCountsMap[triggerId] = 0;
     }
   }
@@ -145,7 +146,7 @@ class _InterventionOverlayScreenState extends State<InterventionOverlayScreen> w
       return false;
     }
 
-    if (triggerId == 'phantom_check' || triggerId == 'upward_comparison') {
+    if (triggerId == 'phantom_check') {
       final taps = _tapCountsMap[triggerId] ?? 0;
       if (taps >= 5) {
         _completedTriggers.add(triggerId);
@@ -196,7 +197,7 @@ class _InterventionOverlayScreenState extends State<InterventionOverlayScreen> w
       case 'info_overload': return Icons.layers;
       case 'the_void': return Icons.circle_outlined;
       case 'phantom_check': return Icons.phonelink_ring;
-      case 'upward_comparison': return Icons.compare_arrows;
+
       case 'ghosting_anxiety': return Icons.chat_bubble_outline;
       case 'social_spiral': return Icons.sync_problem;
       default: return Icons.self_improvement;
@@ -486,7 +487,8 @@ class _InterventionOverlayScreenState extends State<InterventionOverlayScreen> w
         triggerId == 'work_life_blur' || 
         triggerId == 'novelty_hunt' || 
         triggerId == 'interaction_spike' ||
-        triggerId == 'info_overload') {
+        triggerId == 'info_overload' ||
+        triggerId == 'daily_cap_limit') {
       final seconds = _secondsRemainingMap[triggerId] ?? 60;
       return Column(
         children: [
@@ -563,7 +565,7 @@ class _InterventionOverlayScreenState extends State<InterventionOverlayScreen> w
     }
 
     // 4. Tap / Counter resets UI
-    if (triggerId == 'phantom_check' || triggerId == 'upward_comparison') {
+    if (triggerId == 'phantom_check') {
       final taps = _tapCountsMap[triggerId] ?? 0;
       return Column(
         children: [

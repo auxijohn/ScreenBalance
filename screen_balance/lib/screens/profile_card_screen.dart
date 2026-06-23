@@ -193,58 +193,90 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
     }
   }
 
+  Widget _buildGlassCard({required Widget child, EdgeInsetsGeometry? padding, double borderRadius = 28}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: padding ?? const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.12),
+              width: 1.5,
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   void _showProfileDetailsDialog() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-          backgroundColor: Colors.white,
-          title: const Row(
-            children: [
-              Icon(Icons.account_circle, color: Color(0xFF0D47A1), size: 28),
-              SizedBox(width: 12),
-              Text(
-                'Profile Details',
-                style: TextStyle(
-                  color: Color(0xFF0A192F),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
+          backgroundColor: Colors.transparent,
+          contentPadding: EdgeInsets.zero,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          content: _buildGlassCard(
+            borderRadius: 28,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.account_circle, color: Color(0xFF00F2FE), size: 28),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Profile Details',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildProfileDetailRow('Name', widget.profile.name),
-              const Divider(height: 20, color: Colors.black12),
-              _buildProfileDetailRow('Age Group', widget.profile.ageGroup),
-              const Divider(height: 20, color: Colors.black12),
-              _buildProfileDetailRow('Occupation', widget.profile.occupation),
-              const Divider(height: 20, color: Colors.black12),
-              _buildProfileDetailRow(
-                'Calibration',
-                widget.profile.calibrationPath == 'quiz' ? 'Interactive Quiz' : '7-Day Observation',
-              ),
-              const Divider(height: 20, color: Colors.black12),
-              _buildProfileDetailRow(
-                'Status',
-                widget.profile.isCalibrated ? 'Calibrated' : 'Calibration Pending',
-                valueColor: widget.profile.isCalibrated ? Colors.green[700]! : Colors.orange[700]!,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF0D47A1),
-              ),
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                _buildProfileDetailRow('Name', widget.profile.name),
+                const Divider(height: 20, color: Colors.white10),
+                _buildProfileDetailRow('Age Group', widget.profile.ageGroup),
+                const Divider(height: 20, color: Colors.white10),
+                _buildProfileDetailRow('Occupation', widget.profile.occupation),
+                const Divider(height: 20, color: Colors.white10),
+                _buildProfileDetailRow(
+                  'Calibration',
+                  widget.profile.calibrationPath == 'quiz' ? 'Interactive Quiz' : '7-Day Observation',
+                ),
+                const Divider(height: 20, color: Colors.white10),
+                _buildProfileDetailRow(
+                  'Status',
+                  widget.profile.isCalibrated ? 'Calibrated' : 'Calibration Pending',
+                  valueColor: widget.profile.isCalibrated ? const Color(0xFF00E5FF) : Colors.orangeAccent,
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF00F2FE),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.white.withOpacity(0.12)),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -260,7 +292,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
             label,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: Colors.white60,
               fontSize: 13,
             ),
           ),
@@ -268,7 +300,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
             value,
             style: TextStyle(
               fontWeight: FontWeight.w800,
-              color: valueColor ?? const Color(0xFF0A192F),
+              color: valueColor ?? Colors.white,
               fontSize: 14,
             ),
           ),
@@ -388,43 +420,40 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                   const SizedBox(height: 32),
 
                   // Circular Progress Bar
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Container(
-                      color: Colors.white.withOpacity(0.95),
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              value: progress,
-                              minHeight: 8,
-                              backgroundColor: Colors.grey[200],
-                              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00E5FF)),
+                  _buildGlassCard(
+                    borderRadius: 24,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 8,
+                            backgroundColor: Colors.white.withOpacity(0.1),
+                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00E5FF)),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Calibration Progress",
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF00F2FE)),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Calibration Progress",
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue[900]),
-                              ),
-                              Text(
-                                "${(progress * 100).toInt()}% Done",
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue[900]),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            "Status: ${data['status']}",
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.redAccent),
-                          ),
-                        ],
-                      ),
+                            Text(
+                              "${(progress * 100).toInt()}% Done",
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          "Status: ${data['status']}",
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.redAccent),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -433,36 +462,30 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                   Row(
                     children: [
                       Expanded(
-                        child: Container(
+                        child: _buildGlassCard(
+                          borderRadius: 20,
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.95),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text("Focus Index", style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+                              const Text("Focus Index", style: TextStyle(fontSize: 11, color: Colors.white60, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
-                              Text("${data['focus']}%", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0A192F))),
+                              Text("${data['focus']}%", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                             ],
                           ),
                         ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
-                        child: Container(
+                        child: _buildGlassCard(
+                          borderRadius: 20,
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.95),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text("Sleep Log", style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+                              const Text("Sleep Log", style: TextStyle(fontSize: 11, color: Colors.white60, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
-                              Text("${data['sleep']} hrs", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0A192F))),
+                              Text("${data['sleep']} hrs", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                             ],
                           ),
                         ),
@@ -472,17 +495,14 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                   const SizedBox(height: 14),
 
                   // Distractions
-                  Container(
+                  _buildGlassCard(
+                    borderRadius: 20,
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Context Interruptions Logged", style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-                        Text("${data['distractions']} times", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0A192F))),
+                        const Text("Context Interruptions Logged", style: TextStyle(fontSize: 12, color: Colors.white60, fontWeight: FontWeight.bold)),
+                        Text("${data['distractions']} times", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                       ],
                     ),
                   ),
@@ -494,60 +514,55 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                     style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white60, letterSpacing: 1.2),
                   ),
                   const SizedBox(height: 10),
-                  Container(
-                    height: 110,
+                  _buildGlassCard(
+                    borderRadius: 24,
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(7, (index) {
-                        final isCompleted = (index + 1) <= currentDay;
-                        final isCurrent = (index + 1) == currentDay;
-                        final dayFocus = _observationDaysData[index]['focus'];
+                    child: SizedBox(
+                      height: 78,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: List.generate(7, (index) {
+                          final isCompleted = (index + 1) <= currentDay;
+                          final isCurrent = (index + 1) == currentDay;
+                          final dayFocus = _observationDaysData[index]['focus'];
 
-                        return Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  width: 14,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.bottomCenter,
-                                      end: Alignment.topCenter,
-                                      colors: isCompleted
-                                          ? (isCurrent
-                                              ? [const Color(0xFF00E5FF).withOpacity(0.4), const Color(0xFF00E5FF)]
-                                              : [const Color(0xFF0D47A1).withOpacity(0.4), const Color(0xFF0D47A1)])
-                                          : [Colors.grey[200]!, Colors.grey[200]!],
+                          return Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    width: 14,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.bottomCenter,
+                                        end: Alignment.topCenter,
+                                        colors: isCompleted
+                                            ? (isCurrent
+                                                ? [const Color(0xFF00E5FF).withOpacity(0.4), const Color(0xFF00E5FF)]
+                                                : [const Color(0xFF00F2FE).withOpacity(0.4), const Color(0xFF00F2FE)])
+                                            : [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.1)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
-                                    borderRadius: BorderRadius.circular(4),
+                                    height: isCompleted ? (dayFocus.toDouble()) : 0.0,
                                   ),
-                                  height: isCompleted ? (dayFocus.toDouble()) : 0.0,
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text("D${index + 1}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
-                            ],
-                          ),
-                        );
-                      }),
+                                const SizedBox(height: 6),
+                                Text("D${index + 1}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white60)),
+                              ],
+                            ),
+                          );
+                        }),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
 
                   // Simulation Panel Controls
-                  Container(
+                  _buildGlassCard(
+                    borderRadius: 24,
                     padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white12, width: 1),
-                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -558,63 +573,85 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                         ),
                         const SizedBox(height: 12),
                         if (currentDay < 7)
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white.withOpacity(0.12),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF00F2FE), Color(0xFF0D47A1)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            icon: const Icon(Icons.fast_forward, size: 18),
-                            label: const Text("Simulate Next Day", style: TextStyle(fontWeight: FontWeight.bold)),
-                            onPressed: () async {
-                              widget.profile.observationDay++;
-                              await widget.profile.saveToStorage();
-                              widget.onProfileUpdated();
-                              
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Passive Calibration: Day ${widget.profile.observationDay} sync complete.'),
-                                    backgroundColor: const Color(0xFF00E5FF),
-                                  ),
-                                );
-                              }
-                            },
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              icon: const Icon(Icons.fast_forward, size: 18),
+                              label: const Text("Simulate Next Day", style: TextStyle(fontWeight: FontWeight.bold)),
+                              onPressed: () async {
+                                widget.profile.observationDay++;
+                                await widget.profile.saveToStorage();
+                                widget.onProfileUpdated();
+                                
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Passive Calibration: Day ${widget.profile.observationDay} sync complete.'),
+                                      backgroundColor: const Color(0xFF00E5FF),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
                           )
                         else
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00E5FF),
-                              foregroundColor: const Color(0xFF0A192F),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF00F2FE), Color(0xFF0D47A1)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            icon: const Icon(Icons.auto_awesome, size: 18),
-                            label: const Text("Reveal Intervention Card", style: TextStyle(fontWeight: FontWeight.w800)),
-                            onPressed: () async {
-                              widget.profile.isCalibrated = true;
-                              // Passive calibration yields the Circadian Chrono Shift
-                              widget.profile.activeIntentionCard = const {
-                                'title': 'Circadian Chrono Shift',
-                                'emoji': '🌙',
-                                'subtitle': 'Bio-Sync Protocol',
-                                'description': 'Designed for deep-wave focus structures. Your peak performance window is late afternoon/evening, requiring morning shielding blocks to protect energy reserves.'
-                              };
-                              await widget.profile.saveToStorage();
-                              
-                              // Trigger reload
-                              widget.onProfileUpdated();
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              icon: const Icon(Icons.auto_awesome, size: 18),
+                              label: const Text("Reveal Intervention Card", style: TextStyle(fontWeight: FontWeight.w800)),
+                              onPressed: () async {
+                                widget.profile.isCalibrated = true;
+                                // Passive calibration yields the Circadian Chrono Shift
+                                widget.profile.activeIntentionCard = const {
+                                  'title': 'Circadian Chrono Shift',
+                                  'emoji': '🌙',
+                                  'subtitle': 'Bio-Sync Protocol',
+                                  'description': 'Designed for deep-wave focus structures. Your peak performance window is late afternoon/evening, requiring morning shielding blocks to protect energy reserves.'
+                                };
+                                await widget.profile.saveToStorage();
+                                
+                                // Trigger reload
+                                widget.onProfileUpdated();
 
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Pattern Calibrated! Circadian Chrono Shift card unlocked.'),
-                                    backgroundColor: Color(0xFF0D47A1),
-                                  ),
-                                );
-                              }
-                            },
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Pattern Calibrated! Circadian Chrono Shift card unlocked.'),
+                                      backgroundColor: Color(0xFF0D47A1),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
                           ),
                       ],
                     ),
@@ -647,52 +684,69 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
             ),
           ),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(28.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.help_outline_outlined, size: 60, color: Colors.white70),
-                  const SizedBox(height: 24),
-                  const Text(
-                    "Calibration Pending",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "Your profile focus pattern has not been calibrated yet. Take the digital habit quiz to identify your active intervention settings.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13, color: Colors.white70, height: 1.4),
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0D47A1),
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => QuizScreen(
-                            userName: widget.profile.name,
-                            onAuthenticated: widget.onProfileUpdated,
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(28.0),
+                child: _buildGlassCard(
+                  borderRadius: 28,
+                  padding: const EdgeInsets.all(28.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Icon(Icons.help_outline_outlined, size: 60, color: Color(0xFF00F2FE)),
+                      const SizedBox(height: 24),
+                      const Text(
+                        "Calibration Pending",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        "Your profile focus pattern has not been calibrated yet. Take the digital habit quiz to identify your active intervention settings.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13, color: Colors.white70, height: 1.4),
+                      ),
+                      const SizedBox(height: 32),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00F2FE), Color(0xFF0D47A1)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
                           ),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                      );
-                    },
-                    child: const Text("Start Calibration Quiz", style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => QuizScreen(
+                                  userName: widget.profile.name,
+                                  onAuthenticated: widget.onProfileUpdated,
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text("Start Calibration Quiz", style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: _resetProfile,
+                        child: const Text("Back to Welcome Onboarding", style: TextStyle(color: Colors.white70)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _resetProfile,
-                    child: const Text("Back to Welcome Onboarding", style: TextStyle(color: Colors.white70)),
-                  ),
-                ],
+                ),
               ),
             ),
           )
@@ -848,20 +902,9 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                   const SizedBox(height: 28),
 
                   // Archetype Presentation White/Glass Card
-                  Container(
+                  _buildGlassCard(
                     padding: const EdgeInsets.all(28),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
-                      border: Border.all(color: Colors.white, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 30,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
+                    borderRadius: 32,
                     child: Column(
                       children: [
                         // Mascot Image container (reverted back to default mascot representation)
@@ -869,9 +912,9 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Colors.white.withOpacity(0.1),
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFF0D47A1), width: 3),
+                            border: Border.all(color: const Color(0xFF00F2FE), width: 3),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.15),
@@ -895,7 +938,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0D47A1),
+                            color: Color(0xFF00F2FE),
                             letterSpacing: 2.0,
                           ),
                         ),
@@ -907,7 +950,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                           style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF0A192F),
+                              color: Colors.white,
                               height: 1.2,
                             ),
                         ),
@@ -918,18 +961,18 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFFD32F2F),
+                            color: Color(0xFF00E5FF),
                             letterSpacing: 0.5,
                           ),
                         ),
-                        const Divider(height: 40, color: Colors.black12),
+                        const Divider(height: 40, color: Colors.white10),
                         
                         Text(
                           widget.profile.activeIntentionCard['description'] ?? 'Your digital wellness boundary configurations.',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF0F172A),
+                            color: Colors.white70,
                             height: 1.5,
                           ),
                         ),
@@ -962,20 +1005,9 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
 
                       final totalInterventions = InterventionEngine().behavioralHistory.where((e) => e.eventType == "Intervention Triggered").length;
 
-                      return Container(
+                      return _buildGlassCard(
                         padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(28),
-                          border: Border.all(color: Colors.white, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
+                        borderRadius: 28,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -984,7 +1016,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0D47A1),
+                                color: Color(0xFF00F2FE),
                                 letterSpacing: 1.2,
                               ),
                             ),
@@ -1014,7 +1046,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                                       Row(
                                         crossAxisAlignment: CrossAxisAlignment.baseline,
                                         textBaseline: TextBaseline.alphabetic,
-                                        children: [
+                                        children: const [
 // Score is now rendered inside the SolarEclipsePainter graphic
 // The large numeric display has been removed to avoid duplication
                                         ],
@@ -1048,13 +1080,13 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                             // Description text below the graphic
                             Text(
                               phraseDesc,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 13,
-                                color: Colors.black87.withOpacity(0.75),
+                                color: Colors.white70,
                                 height: 1.45,
                               ),
                             ),
-                            const Divider(height: 32, color: Colors.black12),
+                            const Divider(height: 32, color: Colors.white10),
                             
                             // Daily Activity Telemetry Row
                             Row(
@@ -1064,7 +1096,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                                     icon: Icons.screen_lock_portrait,
                                     label: 'Daily Unlocks',
                                     value: '${InterventionEngine().unlockCountToday}',
-                                    color: Colors.blue[900]!,
+                                    color: const Color(0xFF00F2FE),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -1086,13 +1118,9 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                   const SizedBox(height: 20),
 
                   // Digital Vulnerability Metric Gauges (White Card)
-                  Container(
+                  _buildGlassCard(
                     padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
+                    borderRadius: 28,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -1101,7 +1129,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0D47A1),
+                            color: Color(0xFF00F2FE),
                             letterSpacing: 1.2,
                           ),
                         ),
@@ -1126,7 +1154,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                         _buildMetricProgress(
                           label: "Rest & Focus Impact",
                           value: _focusImpact,
-                          color: Colors.indigo[600]!,
+                          color: Colors.indigo[300]!,
                           tooltip: "Degree to which devices displace core productivity and night rest.",
                         ),
                       ],
@@ -1135,36 +1163,54 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
                   const SizedBox(height: 20),
 
                   // Save & Proceed Button
-                  ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Use the navigation bar to access Boundary controls!')),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0D47A1),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF00F2FE), Color(0xFF0D47A1)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
                       ),
-                      elevation: 2,
-                      shadowColor: Colors.black.withOpacity(0.2),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Boundaries Configured',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF00F2FE).withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
-                        SizedBox(width: 8),
-                        Icon(Icons.check_circle_outline, size: 18),
                       ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Use the navigation bar to access Boundary controls!')),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Boundaries Configured',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.check_circle_outline, size: 18),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -1232,119 +1278,117 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
       }
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50]?.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey[200]!, width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Radial Speedometer Gauge
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 76,
-                height: 76,
-                child: CustomPaint(
-                  painter: RadialGaugePainter(value: value, color: badgeColor),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: _buildGlassCard(
+        borderRadius: 20,
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Radial Speedometer Gauge
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 76,
+                  height: 76,
+                  child: CustomPaint(
+                    painter: RadialGaugePainter(value: value, color: badgeColor),
+                  ),
                 ),
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 4), // Shift down slightly due to arc angle
+                    Text(
+                      '${(value * 100).toInt()}%',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            color: badgeColor.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(width: 18),
+            
+            // Details Column
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 4), // Shift down slightly due to arc angle
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      Tooltip(
+                        message: tooltip,
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0A192F).withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: const TextStyle(color: Colors.white, fontSize: 11),
+                        child: const Icon(Icons.info_outline, size: 14, color: Color(0xFF00F2FE)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  
+                  // Severity Badge Chip
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: badgeColor.withOpacity(0.10),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: badgeColor.withOpacity(0.25), width: 1),
+                    ),
+                    child: Text(
+                      status.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        color: badgeColor,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  
+                  // Explanatory Status Description
                   Text(
-                    '${(value * 100).toInt()}%',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF0A192F),
-                      shadows: [
-                        Shadow(
-                          color: badgeColor.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        )
-                      ],
+                    desc,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: Colors.white70,
+                      height: 1.4,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(width: 18),
-          
-          // Details Column
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        label,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0A192F),
-                        ),
-                      ),
-                    ),
-                    Tooltip(
-                      message: tooltip,
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0A192F).withOpacity(0.95),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(color: Colors.white, fontSize: 11),
-                      child: Icon(Icons.info_outline, size: 14, color: Colors.blue[800]),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                
-                // Severity Badge Chip
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: badgeColor.withOpacity(0.10),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: badgeColor.withOpacity(0.25), width: 1),
-                  ),
-                  child: Text(
-                    status.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w800,
-                      color: badgeColor,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                
-                // Explanatory Status Description
-                Text(
-                  desc,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: Colors.black87.withOpacity(0.75),
-                    height: 1.4,
-                  ),
-                ),
-              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1355,13 +1399,9 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
     required String value,
     required Color color,
   }) {
-    return Container(
+    return _buildGlassCard(
+      borderRadius: 16,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50]?.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!, width: 1),
-      ),
       child: Row(
         children: [
           Icon(icon, size: 18, color: color),
@@ -1372,12 +1412,12 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> with SingleTicker
               children: [
                 Text(
                   label,
-                  style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 10, color: Colors.white60, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0A192F)),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ],
             ),
@@ -1435,7 +1475,7 @@ class RadialGaugePainter extends CustomPainter {
     
     // Background Track Paint (Slate Grey)
     final bgPaint = Paint()
-      ..color = const Color(0xFFE2E8F0)
+      ..color = Colors.white.withOpacity(0.12)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6.0
       ..strokeCap = StrokeCap.round;

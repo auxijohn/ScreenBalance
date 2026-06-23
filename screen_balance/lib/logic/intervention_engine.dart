@@ -37,9 +37,10 @@ class InterventionEngine {
   final List<AppOpenRecord> _recentAppOpens = [];
   final List<DateTime> _recentUnlocks = [];
   final List<DateTime> _recentLocks = [];
-  final List<String> _openedAppsInTenMins = [];
+  final List<DateTime> _openedAppsInTenMins = [];
   final List<DateTime> _shoppingAppOpens = [];
   final List<DateTime> _newsAppOpens = [];
+  final List<AppOpenRecord> _recentNotifications = [];
   
   // Decoupled Behavioral History datastore
   final List<BehavioralEvent> behavioralHistory = [];
@@ -49,6 +50,48 @@ class InterventionEngine {
   bool _somaticResetCompletedOverride = false;
   DateTime? _firstMorningUnlockTime;
   int _unlockCountToday = 0;
+  String? _lastOpenedPackage;
+  DateTime? _lastOpenedTime;
+
+  // App usage tracking map: package name -> cumulative duration spent today
+  final Map<String, Duration> _appUsageToday = {};
+  DateTime? _lastTrackingDate;
+
+  void _checkAndResetDailyData(DateTime now) {
+    if (_lastTrackingDate == null) {
+      _lastTrackingDate = now;
+      return;
+    }
+    if (_lastTrackingDate!.year != now.year || 
+        _lastTrackingDate!.month != now.month || 
+        _lastTrackingDate!.day != now.day) {
+      _unlockCountToday = 0;
+      _appUsageToday.clear();
+      _lastTrackingDate = now;
+    }
+  }
+
+  void _updateActiveAppDuration() {
+    if (_lastOpenedPackage != null && _lastOpenedTime != null) {
+      final now = getCurrentTime();
+      final duration = now.difference(_lastOpenedTime!);
+      _appUsageToday[_lastOpenedPackage!] = (_appUsageToday[_lastOpenedPackage!] ?? Duration.zero) + duration;
+      _lastOpenedTime = now;
+    }
+  }
+
+  String _getFriendlyName(String packageName) {
+    final parts = packageName.split('.');
+    if (parts.length > 1) {
+      for (final part in parts.reversed) {
+        if (part != 'android' && part != 'com' && part != 'app' && part != 'messenger') {
+          return part[0].toUpperCase() + part.substring(1);
+        }
+      }
+      return parts.last[0].toUpperCase() + parts.last.substring(1);
+    }
+    return packageName;
+  }
 
   int get unlockCountToday => _unlockCountToday;
 
@@ -77,11 +120,179 @@ class InterventionEngine {
   }
 
   Map<String, String> getMindfulnessPhrase(int score) {
-    final Random _rand = Random();
-    List<String> _pick(List<String> options) => [options[_rand.nextInt(options.length)]];
-    if (score >= 90) {
+    if (score == 100) {
       return {
         'title': 'Zen Master',
+        'description': 'Exceptional digital presence. You are fully in control of your screen time.',
+        'motivation': 'You are a beacon of digital balance—keep shining!'
+      };
+    }
+
+    final now = getCurrentTime();
+    final todayInterventions = behavioralHistory.where((event) {
+      return event.eventType == "Intervention Triggered" &&
+          event.timestamp.year == now.year &&
+          event.timestamp.month == now.month &&
+          event.timestamp.day == now.day;
+    }).toList();
+
+    String? lastTriggerId;
+    if (todayInterventions.isNotEmpty) {
+      final lastEvent = todayInterventions.last;
+      final detail = lastEvent.detail;
+      if (detail.contains('morning_buffer')) lastTriggerId = 'morning_buffer';
+      else if (detail.contains('staged_sunset_t0')) lastTriggerId = 'staged_sunset_t0';
+      else if (detail.contains('staged_sunset_t30')) lastTriggerId = 'staged_sunset_t30';
+      else if (detail.contains('staged_sunset_t60')) lastTriggerId = 'staged_sunset_t60';
+      else if (detail.contains('staged_sunset_t90')) lastTriggerId = 'staged_sunset_t90';
+      else if (detail.contains('midnight_drift')) lastTriggerId = 'midnight_drift';
+      else if (detail.contains('last_scroll_loop')) lastTriggerId = 'last_scroll_loop';
+      else if (detail.contains('work_life_blur')) lastTriggerId = 'work_life_blur';
+      else if (detail.contains('dopamine_loop')) lastTriggerId = 'dopamine_loop';
+      else if (detail.contains('reactive_mode')) lastTriggerId = 'reactive_mode';
+      else if (detail.contains('novelty_hunt')) lastTriggerId = 'novelty_hunt';
+      else if (detail.contains('info_overload')) lastTriggerId = 'info_overload';
+      else if (detail.contains('interaction_spike')) lastTriggerId = 'interaction_spike';
+      else if (detail.contains('the_void')) lastTriggerId = 'the_void';
+      else if (detail.contains('ghosting_anxiety')) lastTriggerId = 'ghosting_anxiety';
+      else if (detail.contains('phantom_check')) lastTriggerId = 'phantom_check';
+      else if (detail.contains('daily_cap_limit')) lastTriggerId = 'daily_cap_limit';
+    }
+
+    final Random _rand = Random();
+    List<String> _pick(List<String> options) => [options[_rand.nextInt(options.length)]];
+
+    if (lastTriggerId == 'morning_buffer') {
+      return {
+        'title': 'Buffer Breaker',
+        'description': 'Morning phone-free buffer was bypassed. Start your day with intention, not feeds.',
+        'motivation': _pick([
+          'Breathe first, scroll later—reclaim your morning.',
+          'Your attention deserves a gentle morning wake-up.',
+          'Try leaving your phone out of reach until after breakfast.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'staged_sunset_t0' ||
+               lastTriggerId == 'staged_sunset_t30' ||
+               lastTriggerId == 'staged_sunset_t60' ||
+               lastTriggerId == 'staged_sunset_t90' ||
+               lastTriggerId == 'midnight_drift' ||
+               lastTriggerId == 'last_scroll_loop') {
+      return {
+        'title': 'Midnight Drifter',
+        'description': 'Late night screen exposure detected. Protect your wind-down rhythm and sleep hygiene.',
+        'motivation': _pick([
+          'Sleep restores your focus; let the screen fade now.',
+          'Breathe deep and step away from the light.',
+          'Your mind deserves a quiet sunset.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'work_life_blur') {
+      return {
+        'title': 'Work-Life Blurer',
+        'description': 'Checking work apps outside focus hours. Protect your recovery time to prevent burnout.',
+        'motivation': _pick([
+          'Boundaries build stamina; disconnect with pride.',
+          'Work is done. Return to the present moment.',
+          'Let Future You handle the remaining tasks.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'dopamine_loop') {
+      return {
+        'title': 'Dopamine Chaser',
+        'description': 'Rapid app switching fragments attention and fuels mental fatigue.',
+        'motivation': _pick([
+          'Breathe and ground your attention in one task.',
+          'Slow down; there is no rush to check everything.',
+          'Break the loop by placing the phone face down.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'reactive_mode') {
+      return {
+        'title': 'Ping Responder',
+        'description': 'High reactivity to notifications. You are checking apps immediately in response to pings.',
+        'motivation': _pick([
+          'You control the device, not the other way around.',
+          'Let the notifications wait; your focus is precious.',
+          'Consider placing your device on Do Not Disturb.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'novelty_hunt') {
+      return {
+        'title': 'Novelty Hunter',
+        'description': 'Frequent entertainment or shopping app opens suggest search for stimulation.',
+        'motivation': _pick([
+          'Restlessness is normal; sit with it for a moment.',
+          'Observe the urge to browse without acting on it.',
+          'Swap a digital scroll for a brief physical stretch.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'info_overload') {
+      return {
+        'title': 'Info Absorber',
+        'description': 'High rate of feed checks risks informational overload and comparison stress.',
+        'motivation': _pick([
+          'Silence the noise and reconnect with your immediate surroundings.',
+          'Your mind is full enough; rest your eyes.',
+          'Take a deep breath and let the feeds go.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'interaction_spike') {
+      return {
+        'title': 'Speed Scroller',
+        'description': 'Accelerated scrolling detected, signaling nervous system hyper-arousal.',
+        'motivation': _pick([
+          'Breathe out slowly; let your scrolling finger rest.',
+          'Sense your feet on the ground—slow down your pace.',
+          'Your nervous system is revving up; take a pause.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'the_void') {
+      return {
+        'title': 'Void Explorer',
+        'description': 'Continuous passive scrolling detected. Reclaim your awareness.',
+        'motivation': _pick([
+          'Look away from the screen and notice three things around you.',
+          'The void has no bottom; choose to step out now.',
+          'Bring your attention back to the physical room.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'ghosting_anxiety') {
+      return {
+        'title': 'Hesitant Communicator',
+        'description': 'Repetitive message editing/deletion indicates communication hesitation or anxiety.',
+        'motivation': _pick([
+          'A pause is okay. You do not need to reply instantly.',
+          'Breathe through the social pressure; you are doing fine.',
+          'Trust your first draft or step away before sending.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'phantom_check') {
+      return {
+        'title': 'Phantom Checker',
+        'description': 'Frequent unlocks without notifications, driven by muscle-memory habit loops.',
+        'motivation': _pick([
+          'Recognize the phantom itch and let it pass.',
+          'Each pause before unlocking is a victory of awareness.',
+          'Try keeping your phone in another room or drawer.'
+        ]).first
+      };
+    } else if (lastTriggerId == 'daily_cap_limit') {
+      return {
+        'title': 'Mindful Limit Shift',
+        'description': 'Daily allowance cap has been exceeded. Take a break to restore your attention spans.',
+        'motivation': _pick([
+          'Mindful screen limits build focus stamina.',
+          'Stepping away now is a victory for your focus.',
+          'Rest your mind; tomorrow brings a fresh allowance.'
+        ]).first
+      };
+    }
+
+    // Fallbacks based on score when no matched intervention is found
+    if (score >= 90) {
+      return {
+        'title': 'Zen Practitioner',
         'description': 'Exceptional digital presence. You are fully in control of your screen time.',
         'motivation': _pick([
           'You are a beacon of digital balance—keep shining!',
@@ -178,7 +389,6 @@ class InterventionEngine {
 
   // Telemetry state variables for advanced scroll/text triggers
   final List<DateTime> _recentScrolls = [];
-  final List<DateTime> _upwardComparisonScrolls = [];
   DateTime? _scrollStartTime;
   DateTime? _lastScrollTime;
   int _ghostingTypedChars = 0;
@@ -209,16 +419,45 @@ class InterventionEngine {
       } else if (event.startsWith("CONTENT_CHANGE:")) {
         final packageName = event.substring("CONTENT_CHANGE:".length);
         processContentChangeEvent(packageName);
+      } else if (event.startsWith("NOTIFICATION:")) {
+        final packageName = event.substring("NOTIFICATION:".length);
+        processNotificationEvent(packageName);
       } else {
         processAppOpen(event);
       }
     });
   }
 
+  void processNotificationEvent(String packageName) {
+    final now = getCurrentTime();
+    _recentNotifications.add(AppOpenRecord(packageName, now));
+    _recentNotifications.removeWhere((record) => now.difference(record.timestamp).inMinutes > 10);
+  }
+
   void processTextChangeEvent(String packageName, int added, int deleted) {
+    print("GHOSTING_DEBUG: processTextChangeEvent received $packageName, added: $added, deleted: $deleted");
+    if (packageName.contains('systemui') || 
+        packageName.contains('launcher') || 
+        packageName == 'com.example.screen_balance' ||
+        packageName.contains('inputmethod') ||
+        packageName.contains('keyboard') ||
+        packageName.contains('swiftkey') ||
+        packageName.contains('honeyboard')) {
+      print("GHOSTING_DEBUG: Ignored text change from $packageName");
+      return;
+    }
+    
+    // If the user starts typing in a new app, reset the buffers for the new app
+    if (_lastTextChangeApp != null && _lastTextChangeApp != packageName) {
+      print("GHOSTING_DEBUG: Switched typing app. Resetting buffers.");
+      _ghostingTypedChars = 0;
+      _ghostingDeletedChars = 0;
+    }
+    
     _lastTextChangeApp = packageName;
     _ghostingTypedChars += added;
     _ghostingDeletedChars += deleted;
+    print("GHOSTING_DEBUG: App: $_lastTextChangeApp | Typed: $_ghostingTypedChars | Deleted: $_ghostingDeletedChars");
   }
 
   Future<void> processScrollEvent(String packageName) async {
@@ -232,7 +471,7 @@ class InterventionEngine {
       }
     });
 
-    if (category == null || category == 'Utility') return;
+    if (category == 'Utility') return;
 
     // ── Interaction Spike ───────────────────────────────────────────────────
     _recentScrolls.add(now);
@@ -273,22 +512,6 @@ class InterventionEngine {
     }
     _lastScrollTime = now;
 
-    // ── Upward Comparison ───────────────────────────────────────────────────
-    if (category == 'Social') {
-      _upwardComparisonScrolls.add(now);
-      _upwardComparisonScrolls.removeWhere((t) => now.difference(t).inMinutes > 3);
-      
-      final socialScrollsInThreeMins = _upwardComparisonScrolls.length;
-      if (socialScrollsInThreeMins >= 3 && _ghostingTypedChars == 0) {
-        _triggerIntervention(
-          title: "Upward Comparison Risk",
-          message: "Notice how this content is making you feel. Can we reframe this comparison into curiosity?",
-          somaticReset: "Social Savoring Reframe: A micro-prompt exercise to actively shift from FOMO to positive appreciation.",
-          triggerId: "upward_comparison",
-        );
-        _upwardComparisonScrolls.clear();
-      }
-    }
   }
 
   Future<void> processContentChangeEvent(String packageName) async {
@@ -345,13 +568,16 @@ class InterventionEngine {
   }
 
   Future<void> processAppOpen(String packageName) async {
+    final now = getCurrentTime();
+    _checkAndResetDailyData(now);
+    _updateActiveAppDuration();
+    
     // ── Ghosting Anxiety Check ──────────────────────────────────────────────
-    if (packageName.contains('launcher') || packageName.contains('systemui') || packageName == 'com.example.screen_balance') {
-      if (packageName == 'com.example.screen_balance') {
-        final isResumed = WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
-        if (!isResumed) return;
-      }
-      if (_lastTextChangeApp != null && _ghostingTypedChars >= 30 && _ghostingDeletedChars >= _ghostingTypedChars) {
+    print("GHOSTING_DEBUG: processAppOpen($packageName)");
+    if (_lastTextChangeApp != null && packageName != _lastTextChangeApp && !packageName.contains('systemui')) {
+      print("GHOSTING_DEBUG: Evaluating ghosting... Typed: $_ghostingTypedChars, Deleted: $_ghostingDeletedChars");
+      if (_ghostingTypedChars >= 10 && _ghostingDeletedChars >= (_ghostingTypedChars * 0.8)) {
+        print("GHOSTING_DEBUG: Ghosting Anxiety Triggered!");
         _triggerIntervention(
           title: "Ghosting Anxiety",
           message: "It looks like you're hesitating on a message. Overthinking can build social tension. Let's take a breath before deciding.",
@@ -359,14 +585,37 @@ class InterventionEngine {
           triggerId: "ghosting_anxiety",
         );
       }
-      // Reset buffers when returning to launcher
+      // Reset buffers because we switched away from the app we were typing in
       _ghostingTypedChars = 0;
       _ghostingDeletedChars = 0;
       _lastTextChangeApp = null;
+    }
+
+    if (packageName.contains('launcher') || packageName.contains('systemui') || packageName == 'com.example.screen_balance') {
+      if (packageName == 'com.example.screen_balance') {
+        final isResumed = WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+        if (!isResumed) return;
+      }
       return;
     }
 
-    final now = getCurrentTime();
+    bool isNotificationDriven = false;
+    for (final notif in _recentNotifications.reversed) {
+      if (notif.packageName == packageName && now.difference(notif.timestamp).inMinutes <= 2) {
+        isNotificationDriven = true;
+        break;
+      }
+    }
+
+    // Debounce duplicate accessibility events for the same app
+    if (!isNotificationDriven && _lastOpenedPackage == packageName && _lastOpenedTime != null) {
+      if (now.difference(_lastOpenedTime!).inSeconds < 5) {
+        return;
+      }
+    }
+    _lastOpenedPackage = packageName;
+    _lastOpenedTime = now;
+
     final settings = await BoundarySettings.loadFromStorage();
 
     // Look up category
@@ -376,6 +625,71 @@ class InterventionEngine {
         category = key;
       }
     });
+
+    // Automatic fallback for popular apps
+    if (category == null) {
+      final Map<String, String> autoCategories = {
+        // Social / Communication
+        'com.whatsapp': 'Social',
+        'com.instagram.android': 'Social',
+        'com.facebook.katana': 'Social',
+        'com.twitter.android': 'Social',
+        'com.zhiliaoapp.musically': 'Social', // TikTok
+        'com.snapchat.android': 'Social',
+        'org.telegram.messenger': 'Social',
+        'com.discord': 'Social',
+        'com.linkedin.android': 'Social',
+        'com.reddit.frontpage': 'Social',
+        'com.pinterest': 'Social',
+        
+        // Emotional Distraction (Dating)
+        'com.tinder': 'Emotional Distraction',
+        'com.bumble.app': 'Emotional Distraction',
+        'co.hinge.app': 'Emotional Distraction',
+        
+        // Productivity / Work
+        'com.slack': 'Productivity',
+        'com.microsoft.teams': 'Productivity',
+        'com.google.android.gm': 'Productivity', // Gmail
+        'com.microsoft.office.outlook': 'Productivity',
+        'com.google.android.apps.docs': 'Productivity', 
+        'com.atlassian.android.jira.core': 'Productivity',
+        'com.google.android.apps.meetings': 'Productivity', // Meet
+        'us.zoom.videomeetings': 'Productivity',
+        'com.asana.app': 'Productivity',
+
+        // Entertainment / Shopping
+        'com.google.android.youtube': 'Entertainment',
+        'com.netflix.mediaclient': 'Entertainment',
+        'tv.twitch.android.app': 'Entertainment',
+        'com.spotify.music': 'Entertainment',
+        'in.amazon.mShop.android.shopping': 'Entertainment', // Amazon
+        'com.flipkart.android': 'Entertainment', // Flipkart
+        'com.myntra.android': 'Entertainment', // Myntra
+        'com.meesho.supply': 'Entertainment', // Meesho
+        'com.ril.ajio': 'Entertainment', // Ajio
+        'in.swiggy.android': 'Entertainment', // Swiggy
+        'com.application.zomato': 'Entertainment', // Zomato
+        'com.grofers.customerapp': 'Entertainment', // Blinkit
+
+        // Utilities
+        'com.android.chrome': 'Utility',
+        'com.google.android.apps.maps': 'Utility',
+        'com.google.android.calendar': 'Utility',
+      };
+      
+      category = autoCategories[packageName];
+      
+      // If we successfully auto-categorized it, save it
+      if (category != null) {
+        settings.categorizedApps.putIfAbsent(category!, () => []).add(packageName);
+        await settings.saveToStorage();
+      }
+    }
+
+    // We no longer automatically add apps to `customApps`.
+    // This ensures auto-categorized apps (like Netflix when opened) don't clutter 
+    // the user's manual "Balanced Applications" list view in the Boundary screen.
 
     logEvent("App Open", "$packageName (${category ?? 'Uncategorized'})");
 
@@ -387,6 +701,22 @@ class InterventionEngine {
     if (_somaticResetCompletedOverride) {
       _somaticResetCompletedOverride = false; // consume it
       return;
+    }
+
+    // ── Capped App / Daily Mindful Allowance Check ───────────────────────────
+    final currentUsage = _appUsageToday[packageName] ?? Duration.zero;
+    if (category == 'Social' || category == 'Entertainment') {
+      final int limitMinutes = category == 'Social' ? 15 : 30;
+      if (currentUsage.inMinutes >= limitMinutes) {
+        final appName = _getFriendlyName(packageName);
+        _triggerIntervention(
+          title: "Daily Cap Exceeded",
+          message: "You have reached your $limitMinutes-minute daily allowance for $appName. Let's take a mindful pause to step away.",
+          somaticReset: "The Horizon View: Stand up and look at the furthest point you can see out a window for 60 seconds to reset your visual system.",
+          triggerId: "daily_cap_limit",
+        );
+        return;
+      }
     }
 
     // 1. Morning Mindfulness Buffer Check
@@ -456,8 +786,8 @@ class InterventionEngine {
     // 3. Focus Mode Hours Check
     if (category == 'Productivity') {
       // Removed unused afterText reference; evolved state handled elsewhere
-      final start = settings.focusStartTime ?? const TimeOfDay(hour: 9, minute: 0);
-      final end = settings.focusEndTime ?? const TimeOfDay(hour: 17, minute: 0);
+      final start = await settings.getEffectiveFocusStartTime() ?? const TimeOfDay(hour: 9, minute: 0);
+      final end = await settings.getEffectiveFocusEndTime() ?? const TimeOfDay(hour: 17, minute: 0);
       if (_isOutsideFocusHours(now, start, end)) {
         _triggerIntervention(
           title: "Work-Life Blur",
@@ -471,23 +801,38 @@ class InterventionEngine {
 
     // 4. Midnight Drift Rule
     if (settings.targetBedtime != null && _isPastBedtime(now, settings.targetBedtime!)) {
-      if (category == 'Social' || category == 'Entertainment' || category == 'Emotional Distraction') {
-        _triggerIntervention(
-          title: "Midnight Drift",
-          message: "It's past your quiet hour. Late-night light can trick your brain into staying alert when it needs rest.",
-          somaticReset: "Tactile Grounding: Put your phone down and touch 3 different textures.",
-          triggerId: "midnight_drift",
-        );
-        return;
-      }
+      _triggerIntervention(
+        title: "Midnight Drift",
+        message: "It's past your quiet hour. Late-night light can trick your brain into staying alert when it needs rest.",
+        somaticReset: "Tactile Grounding: Put your phone down and touch 3 different textures.",
+        triggerId: "midnight_drift",
+      );
+      return;
     }
 
     // 5. Dopamine Loop Rule
     _recentAppOpens.add(AppOpenRecord(packageName, now));
     _recentAppOpens.removeWhere((record) => now.difference(record.timestamp).inSeconds > 60);
     
-    final uniquePackages = _recentAppOpens.map((record) => record.packageName).toSet();
-    if (uniquePackages.length >= 3) {
+    int maxConsecutiveSwitches = 0;
+    int currentChain = 0;
+    
+    for (int i = 1; i < _recentAppOpens.length; i++) {
+      final prev = _recentAppOpens[i - 1];
+      final curr = _recentAppOpens[i];
+      if (curr.packageName != prev.packageName) {
+        if (curr.timestamp.difference(prev.timestamp).inSeconds < 10) {
+          currentChain++;
+          if (currentChain > maxConsecutiveSwitches) {
+            maxConsecutiveSwitches = currentChain;
+          }
+        } else {
+          currentChain = 0; // The chain of rapid switching was broken
+        }
+      }
+    }
+
+    if (maxConsecutiveSwitches >= 4) {
       _triggerIntervention(
         title: "Dopamine Loop",
         message: "You're moving fast between apps. This rapid switching can fragment your focus. Ready for a quick reset?",
@@ -499,16 +844,20 @@ class InterventionEngine {
     }
 
     // 6. Reactive Mode
-    _openedAppsInTenMins.add(packageName);
-    if (_openedAppsInTenMins.length >= 5) {
-      _triggerIntervention(
-        title: "Reactive Mode",
-        message: "You're reacting to pings as they come. This high-alert mode increases cognitive load. Want to take back control?",
-        somaticReset: "The Horizon View: Stand up and look at the furthest point you can see out a window for 60 seconds.",
-        triggerId: "reactive_mode",
-      );
-      _openedAppsInTenMins.clear();
-      return;
+
+    if (isNotificationDriven) {
+      _openedAppsInTenMins.add(now);
+      _openedAppsInTenMins.removeWhere((t) => now.difference(t).inMinutes > 30);
+      if (_openedAppsInTenMins.length >= 5) {
+        _triggerIntervention(
+          title: "Reactive Mode",
+          message: "You're reacting to pings as they come. This high-alert mode increases cognitive load. Want to take back control?",
+          somaticReset: "The Horizon View: Stand up and look at the furthest point you can see out a window for 60 seconds.",
+          triggerId: "reactive_mode",
+        );
+        _openedAppsInTenMins.clear();
+        return;
+      }
     }
 
     // 7. Novelty Hunt
@@ -546,6 +895,9 @@ class InterventionEngine {
 
   Future<void> processDeviceUnlock() async {
     final now = getCurrentTime();
+    _checkAndResetDailyData(now);
+    _lastOpenedPackage = null;
+    _lastOpenedTime = now;
     final settings = await BoundarySettings.loadFromStorage();
     
     _unlockCountToday++;
@@ -589,6 +941,10 @@ class InterventionEngine {
 
   void processDeviceLock() {
     final now = getCurrentTime();
+    _checkAndResetDailyData(now);
+    _updateActiveAppDuration();
+    _lastOpenedPackage = null;
+    _lastOpenedTime = null;
     logEvent("Device Lock", "");
     _recentLocks.add(now);
     _recentLocks.removeWhere((timestamp) => now.difference(timestamp).inMinutes > 15);
@@ -705,14 +1061,7 @@ class InterventionEngine {
           triggerId: triggerId,
         );
         break;
-      case "upward_comparison":
-        _triggerIntervention(
-          title: "Upward Comparison Risk",
-          message: "Notice how this content is making you feel. Can we reframe this comparison into curiosity?",
-          somaticReset: "Social Savoring Reframe: A micro-prompt exercise to actively shift from FOMO to positive appreciation.",
-          triggerId: triggerId,
-        );
-        break;
+
       case "midnight_drift":
         _triggerIntervention(
           title: "Midnight Drift",
@@ -766,6 +1115,14 @@ class InterventionEngine {
           title: "Interaction Spike",
           message: "Your scrolling speed has increased. This often happens when the nervous system is revving up. Ready to slow down?",
           somaticReset: "The Weighted Reset: Sit down and press your feet firmly into the floor, feeling the support of the ground for 60 seconds.",
+          triggerId: triggerId,
+        );
+        break;
+      case "daily_cap_limit":
+        _triggerIntervention(
+          title: "Daily Cap Exceeded",
+          message: "You have reached your 15-minute daily allowance for Instagram. Let's take a mindful pause to step away.",
+          somaticReset: "The Horizon View: Stand up and look at the furthest point you can see out a window for 60 seconds to reset your visual system.",
           triggerId: triggerId,
         );
         break;

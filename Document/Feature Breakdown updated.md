@@ -55,21 +55,21 @@ Based on the overall objective, the ScreenBalance app can be architected into di
 *   **Inputs:** OS device events (app opens, lock/unlocks, scroll speed).
 *   **Outputs:** Emits specific behavioral events to the Event Bus when threshold patterns are detected. The engine scans for the following triggers:
 
-| Theme | Scenario | Behavioral Trigger (Detection Threshold) |
-| :--- | :--- | :--- |
-| **FOCUS** | **Dopamine Loop** | 3+ apps in <60 seconds. |
-| **FOCUS** | **The Void** | 20+ mins of continuous scrolling. |
-| **FOCUS** | **Reactive Mode** | 5+ notification-driven opens in 10 mins. |
-| **SOCIAL** | **Social Spiral** | 10+ rapid profile views on Social apps. |
-| **SOCIAL** | **Ghosting Anxiety**| Typing >100 chars, deleting all, and closing. |
+| Theme | Scenario | Behavioral Trigger (Detection Threshold)                                              |
+| :--- | :--- |:--------------------------------------------------------------------------------------|
+| **FOCUS** | **Dopamine Loop** | 5+ apps in <60 seconds.                                                               |
+| **FOCUS** | **The Void** | 20+ mins of continuous scrolling.                                                     |
+| **FOCUS** | **Reactive Mode** | 5+ notification-driven opens in 30 mins.                                              |
+| **SOCIAL** | **Social Spiral** | 10+ rapid profile views on Social apps.                                               |
+| **SOCIAL** | **Ghosting Anxiety**| Typing >100 chars, deleting all, and closing.                                         |
 | **SOCIAL** | **Upward Comparison Risk** | Prolonged passive scrolling on Image/Video Social apps (high dwell, low interaction). |
-| **REST** | **Midnight Drift** | Usage 1 hour past Sleep Goal. |
-| **REST** | **Last Scroll Loop**| 3+ Lock/Unlock cycles in <2 mins at night. |
-| **REST** | **Work-Life Blur** | Opening Slack/Email during 'Digital Sunset'. |
-| **NOVELTY** | **Phantom Check** | 10+ unlocks in 15 mins (no pings). |
-| **NOVELTY** | **Novelty Hunt** | 5+ Shopping/Store apps in 10 mins. |
-| **STRESS** | **Info Overload** | 5+ news/high-intensity apps in 15 mins. |
-| **STRESS** | **Interaction Spike**| Rapid scrolling speed (px/sec) doubling. |
+| **REST** | **Midnight Drift** | Usage 1 hour past Sleep Goal.                                                         |
+| **REST** | **Last Scroll Loop**| 3+ Lock/Unlock cycles in <2 mins at night.                                            |
+| **REST** | **Work-Life Blur** | Opening Slack/Email during 'Digital Sunset'.                                          |
+| **NOVELTY** | **Phantom Check** | 10+ unlocks in 15 mins (no pings).                                                    |
+| **NOVELTY** | **Novelty Hunt** | 5+ Shopping/Store apps in 10 mins.                                                    |
+| **STRESS** | **Info Overload** | 5+ news/high-intensity apps in 15 mins.                                               |
+| **STRESS** | **Interaction Spike**| Rapid scrolling speed (px/sec) doubling.                                              |
 
 *   **Independence:** A "dumb" sensor that only observes and broadcasts raw behavioral metrics without knowing why.
 *   **Research Basis:** Problematic smartphone use is defined by *compulsive, uncontrolled behavior* (like rapid switching), not total screen time duration. [(Psychology Today Meta-Analysis, 2024)](https://www.psychologytoday.com). Additionally, passive social media consumption drives FOMO, leading to upward comparison and self-esteem decline. [(Frontiers in Psychology, 2024)](https://www.frontiersin.org)

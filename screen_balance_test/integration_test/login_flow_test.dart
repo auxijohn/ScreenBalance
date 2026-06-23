@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:screen_balance/main.dart';
@@ -14,6 +15,23 @@ void main() {
   testWidgets(
       'Scenario 7: App Profile Reset & Returning PIN Validation Test',
       (WidgetTester tester) async {
+    // Mock the device_apps and commands MethodChannels to prevent native querying hangs
+    const channel = MethodChannel('g123k/device_apps');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (methodCall) async {
+      if (methodCall.method.startsWith('getInstalledApps')) {
+        return [];
+      }
+      return null;
+    });
+
+    const cmdChannel = MethodChannel('com.screenbalance.tracker/commands');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(cmdChannel, (methodCall) async {
+      if (methodCall.method == 'isAccessibilityServiceEnabled') {
+        return true;
+      }
+      return null;
+    });
+
     // ── 1. Set up a returning (calibrated) user ───────────────────────────────
     SharedPreferences.setMockInitialValues({
       'user_pin': '1234',
@@ -28,6 +46,14 @@ void main() {
     await tester.pumpWidget(const ScreenBalanceApp());
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 600));
+
+    // Skip WelcomeScreen if present
+    if (find.byElementPredicate((e) => e.widget.runtimeType.toString() == 'WelcomeScreen').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Skip'));
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.tap(find.text('Unlock Screen Balance →'));
+      await tester.pump(const Duration(milliseconds: 800));
+    }
 
     // Returning user skips Welcome → goes straight to PIN login screen
     expect(find.text('Welcome Back, Returning User'), findsOneWidget,

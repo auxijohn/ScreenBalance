@@ -21,7 +21,7 @@
 ///   ✅ Midnight Drift    — Social/Entertainment app opened past target bedtime
 ///   ✅ Last Scroll Loop  — 3+ unlocks in 2 minutes past bedtime
 ///
-/// Note: social_spiral, ghosting_anxiety, upward_comparison, the_void,
+/// Note: social_spiral, ghosting_anxiety, the_void,
 /// and interaction_spike have no real OS detection — they are only in the
 /// debug simulator because they require ML/NLP analysis (typing patterns,
 /// scroll velocity, etc.) that goes beyond basic UsageStats counters.
@@ -172,6 +172,14 @@ void main() {
       return null;
     });
 
+    const cmdChannel = MethodChannel('com.screenbalance.tracker/commands');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(cmdChannel, (methodCall) async {
+      if (methodCall.method == 'isAccessibilityServiceEnabled') {
+        return true;
+      }
+      return null;
+    });
+
     // ── Setup ─────────────────────────────────────────────────────────────────
     // Pre-seed SharedPreferences with:
     //   • A calibrated user profile (skips onboarding)
@@ -206,6 +214,14 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 600));
 
+    // Skip WelcomeScreen if present
+    if (find.byElementPredicate((e) => e.widget.runtimeType.toString() == 'WelcomeScreen').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Skip'));
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.tap(find.text('Unlock Screen Balance →'));
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+
     final pinField = find.byType(TextField);
     await tester.enterText(pinField.first, '1234');
     await tester.pump(const Duration(milliseconds: 400));
@@ -230,14 +246,15 @@ void main() {
         DateTime(2026, 6, 12, 9, 15)); // 9:15 AM — inside focus hours
 
     // ── TRIGGER 1: Dopamine Loop ───────────────────────────────────────────
-    // Real event: User switches between 3 social apps within 60 seconds.
-    // Detection: _recentAppOpens.length >= 3 within 60 seconds.
+    // Real event: User switches between 5 apps within 60 seconds (requires 4 switches).
     debugPrint('');
     debugPrint('   🔵 Simulating: Rapid app switching (Dopamine Loop)');
-    debugPrint('      Real behavior: Instagram → Twitter → Reddit in 60s');
+    debugPrint('      Real behavior: Instagram → Twitter → Facebook → Reddit → Snapchat in 60s');
     await _openApp(tester, _socialApps[0], label: 'Instagram');
     await _openApp(tester, _socialApps[1], label: 'Twitter');
-    await _openApp(tester, _socialApps[2], label: 'Facebook'); // 3rd → fires!
+    await _openApp(tester, _socialApps[2], label: 'Facebook');
+    await _openApp(tester, _socialApps[3], label: 'Reddit');
+    await _openApp(tester, _socialApps[4], label: 'Snapchat'); // 5th → fires!
 
     await _handleOverlay(tester, 'Dopamine Loop', snooze: true);
     debugPrint('   ✅ Dopamine Loop triggered by real app-switching pattern');
@@ -286,10 +303,13 @@ void main() {
 
     final baseTime = DateTime(2026, 6, 12, 18, 35);
     for (int i = 0; i < 5; i++) {
-      // Advance simulated time by 70s between each open (avoids Dopamine Loop's 60s window)
-      InterventionEngine()
-          .setSimulatedTime(baseTime.add(Duration(seconds: i * 70)));
-      await _openApp(tester, _socialApps[i % _socialApps.length],
+      final time = baseTime.add(Duration(seconds: i * 70));
+      InterventionEngine().setSimulatedTime(time);
+      final packageName = _socialApps[i % _socialApps.length];
+      // Inject notification first to make isNotificationDriven true for this app open
+      NativeTracker.appOpenStream.add('NOTIFICATION:$packageName');
+      await tester.pump(const Duration(milliseconds: 100));
+      await _openApp(tester, packageName,
           label: 'Open #${i + 1} at +${i * 70}s');
     }
 
@@ -373,7 +393,6 @@ void main() {
     debugPrint('   • The Void         (scroll duration monitoring)');
     debugPrint('   • Social Spiral    (profile-view pattern recognition)');
     debugPrint('   • Ghosting Anxiety (typing + delete + close pattern)');
-    debugPrint('   • Upward Comparison (passive social content analysis)');
     debugPrint('   • Interaction Spike (scroll velocity measurement)');
   });
 }

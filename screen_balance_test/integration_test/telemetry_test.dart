@@ -23,6 +23,14 @@ void main() {
       return null;
     });
 
+    const cmdChannel = MethodChannel('com.screenbalance.tracker/commands');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(cmdChannel, (methodCall) async {
+      if (methodCall.method == 'isAccessibilityServiceEnabled') {
+        return true;
+      }
+      return null;
+    });
+
     // ── 1. Pre-calibrate a profile so we skip onboarding ──────────────────────
     SharedPreferences.setMockInitialValues({
       'user_pin': '1234',
@@ -37,6 +45,14 @@ void main() {
     await tester.pumpWidget(const ScreenBalanceApp());
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 600));
+
+    // Skip WelcomeScreen if present
+    if (find.byElementPredicate((e) => e.widget.runtimeType.toString() == 'WelcomeScreen').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Skip'));
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.tap(find.text('Unlock Screen Balance →'));
+      await tester.pump(const Duration(milliseconds: 800));
+    }
 
     // Returning user sees PIN screen directly
     expect(find.text('Welcome Back, Telemetry User'), findsOneWidget,

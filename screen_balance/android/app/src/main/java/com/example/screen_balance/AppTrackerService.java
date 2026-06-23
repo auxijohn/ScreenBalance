@@ -48,12 +48,16 @@ public class AppTrackerService extends AccessibilityService {
             intent.putExtra(EXTRA_EVENT_TYPE, "SCROLL");
             sendBroadcast(intent);
         } else if (eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
+            Log.d(TAG, "TEXT_CHANGE: " + packageName + " | Added: " + event.getAddedCount() + " | Deleted: " + event.getRemovedCount());
             intent.putExtra(EXTRA_EVENT_TYPE, "TEXT_CHANGE");
             intent.putExtra(EXTRA_ADDED_COUNT, event.getAddedCount());
             intent.putExtra(EXTRA_DELETED_COUNT, event.getRemovedCount());
             sendBroadcast(intent);
         } else if (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             intent.putExtra(EXTRA_EVENT_TYPE, "CONTENT_CHANGE");
+            sendBroadcast(intent);
+        } else if (eventType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
+            intent.putExtra(EXTRA_EVENT_TYPE, "NOTIFICATION");
             sendBroadcast(intent);
         }
     }

@@ -119,6 +119,14 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 600));
 
+    // Skip WelcomeScreen if present
+    if (find.byElementPredicate((e) => e.widget.runtimeType.toString() == 'WelcomeScreen').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Skip'));
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.tap(find.text('Unlock Screen Balance →'));
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+
     final pinField = find.byType(TextField);
     await tester.enterText(pinField.first, '1234');
     await tester.pump(const Duration(milliseconds: 800));

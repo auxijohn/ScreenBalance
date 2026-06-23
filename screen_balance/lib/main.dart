@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/auth_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/dashboard_shell.dart';
 import 'screens/intervention_overlay_screen.dart';
 import 'screens/accessibility_permission_screen.dart';
@@ -35,6 +36,7 @@ class _ScreenBalanceAppState extends State<ScreenBalanceApp> {
   final List<Map<String, String>> _activeInterventions = [];
   bool _isAuthenticated = false;
   bool _isAccessibilityEnabled = true;
+  bool _showWelcome = true; // Always show welcome on every cold launch
   StreamSubscription<Map<String, String>>? _interventionSubscription;
 
   @override
@@ -60,6 +62,12 @@ class _ScreenBalanceAppState extends State<ScreenBalanceApp> {
           final alreadyPresent = _activeInterventions.any((element) => element['triggerId'] == data['triggerId']);
           if (!alreadyPresent) {
             _activeInterventions.add(data);
+            try {
+              const commandChannel = MethodChannel('com.screenbalance.tracker/commands');
+              commandChannel.invokeMethod('bringToForeground');
+            } catch (e) {
+              debugPrint('Error bringing app to foreground: $e');
+            }
           }
         });
       }
@@ -122,42 +130,47 @@ class _ScreenBalanceAppState extends State<ScreenBalanceApp> {
       debugShowCheckedModeBanner: false,
       home: Stack(
         children: [
-          !_isAuthenticated
-              ? AuthScreen(
-                  onAuthenticated: () async {
-                    try {
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool('is_authenticated', true);
-                    } catch (e) {
-                      debugPrint('Error saving authentication status: $e');
-                    }
-                    setState(() {
-                      _isAuthenticated = true;
-                    });
-                  },
-                )
-              : (!_isAccessibilityEnabled
-                  ? AccessibilityPermissionScreen(
-                      onPermissionGranted: () {
-                        setState(() {
-                          _isAccessibilityEnabled = true;
-                        });
-                      },
-                    )
-                  : DashboardShell(
-                      onLogout: () async {
-                        try {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.setBool('is_authenticated', false);
-                        } catch (e) {
-                          debugPrint('Error clearing authentication status: $e');
-                        }
-                        setState(() {
-                          _isAuthenticated = false;
-                        });
-                      },
-                    )),
-          
+          // 1. Welcome screen always plays first on cold launch
+          if (_showWelcome)
+            WelcomeScreen(
+              key: const ValueKey('welcome'),
+              onStart: () {
+                setState(() {
+                  _showWelcome = false;
+                });
+              },
+            )
+          else if (!_isAuthenticated)
+              AuthScreen(
+                onAuthenticated: () async {
+                  try {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('is_authenticated', true);
+                  } catch (e) {
+                    debugPrint('Error saving authentication status: $e');
+                  }
+                  await _checkAccessibility();
+                  setState(() {
+                    _isAuthenticated = true;
+                  });
+                },
+              )
+          else
+            DashboardShell(
+              onLogout: () async {
+                try {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('is_authenticated', false);
+                } catch (e) {
+                  debugPrint('Error clearing authentication status: $e');
+                }
+                setState(() {
+                  _isAuthenticated = false;
+                  _showWelcome = true;
+                });
+              },
+            ),
+
           // Global Intervention Overlay
           if (_activeInterventions.isNotEmpty)
             InterventionOverlayScreen(
