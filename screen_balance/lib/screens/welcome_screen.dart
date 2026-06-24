@@ -166,7 +166,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     _autoAdvanceTimer?.cancel();
     final bool isTesting = !kIsWeb && Platform.environment.containsKey('FLUTTER_TEST');
     if (!_isResearchOpen && mounted && !isTesting) {
-      _autoAdvanceTimer = Timer(const Duration(milliseconds: 6000), () {
+      _autoAdvanceTimer = Timer(const Duration(milliseconds: 4000), () {
         if (!mounted) return;
         _nextStatement();
       });
@@ -204,7 +204,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     });
     _textController.forward(from: 0);
 
-    // 5. Start auto advance timer (6000ms)
+    // 5. Start auto advance timer (4000ms)
     _resetAutoAdvanceTimer();
   }
 
@@ -647,28 +647,32 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.cyanAccent.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.cyanAccent.withOpacity(0.15)),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.verified_user_rounded, color: Colors.cyanAccent, size: 12),
-                    SizedBox(width: 6),
-                    Text(
-                      'Psychology-Backed Interventions',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.cyanAccent,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+              InkWell(
+                onTap: () => _showAppDetails(context),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.cyanAccent.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.cyanAccent.withOpacity(0.24)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.lightbulb_outline_rounded, color: Colors.cyanAccent, size: 16),
+                      SizedBox(width: 8),
+                      Text(
+                        'More Details about the App',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.cyanAccent,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -1134,6 +1138,94 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         _resetAutoAdvanceTimer(); // Resume auto advance
       }
     });
+  }
+
+  void _showAppDetails(BuildContext context) {
+    Widget buildDetailPoint(IconData icon, String title, String description) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.cyanAccent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Colors.cyanAccent, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 0.3)),
+                  const SizedBox(height: 4),
+                  Text(description, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13.5, height: 1.4)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF0F172A),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.cyanAccent.withOpacity(0.2), width: 1),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.auto_awesome_mosaic_rounded, color: Colors.cyanAccent),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text('The Architecture of Focus', style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900)),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Willpower is a finite resource. ScreenBalance doesn't just block apps; it intelligently intercepts the subconscious habit loops that drain your time.",
+                  style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 14, height: 1.5, fontStyle: FontStyle.italic),
+                ),
+                const SizedBox(height: 24),
+                buildDetailPoint(
+                  Icons.psychology_rounded,
+                  "Subconscious Telemetry",
+                  "Silently maps your unique behavioral patterns—detecting phantom unlocks, doom-scrolling, and cognitive overload—keeping all data strictly on your device.",
+                ),
+                buildDetailPoint(
+                  Icons.self_improvement_rounded,
+                  "Somatic Interventions",
+                  "Shatters digital hypnosis. When compulsive behaviors spike, an un-dismissable reset gently grounds your nervous system, returning you to absolute conscious control.",
+                ),
+                buildDetailPoint(
+                  Icons.nights_stay_rounded,
+                  "Circadian Sunset Protocol",
+                  "Respects your biology. As evening approaches, stimulating apps dynamically fade out and lock down, effortlessly guiding your brain toward deep, restorative sleep.",
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Got it', style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

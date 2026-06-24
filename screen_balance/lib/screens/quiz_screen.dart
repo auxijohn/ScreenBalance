@@ -42,6 +42,7 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateMixin {
   final QuizEngine _engine = QuizEngine();
   int _currentIndex = 0;
+  final Map<int, Option> _userAnswers = {};
 
   // Active highlighted option to simulate hover/tap glow
   Option? _selectedOption;
@@ -84,19 +85,26 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
   void _answerQuestion(Option option) {
     setState(() {
       _selectedOption = option;
+      _userAnswers[_currentIndex] = option;
     });
 
     // Short tactile pause before transition
     Future.delayed(const Duration(milliseconds: 350), () {
       if (!mounted) return;
-      _engine.recordAnswer(option);
 
       if (_currentIndex < QuizData.questions.length - 1) {
         setState(() {
           _currentIndex++;
-          _selectedOption = null;
+          _selectedOption = _userAnswers[_currentIndex];
         });
       } else {
+        // Tally all answers
+        for (var i = 0; i < QuizData.questions.length; i++) {
+          if (_userAnswers.containsKey(i)) {
+            _engine.recordAnswer(_userAnswers[i]!);
+          }
+        }
+
         // Quiz completed, save profile and navigate to dashboard
         final details = _engine.getArchetypeDetails();
         final profile = UserProfile(
@@ -167,7 +175,7 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
                           if (_currentIndex > 0) {
                             setState(() {
                               _currentIndex--;
-                              _selectedOption = null;
+                              _selectedOption = _userAnswers[_currentIndex];
                             });
                           } else {
                             Navigator.pop(context);
