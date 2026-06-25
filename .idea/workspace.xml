@@ -6,46 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="6dbefe6d-f17e-47d2-a998-ccec731ea542" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Document/Feature Breakdown updated.md" beforeDir="false" afterPath="$PROJECT_DIR$/Document/Feature Breakdown updated.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/android/app/src/main/java/com/example/screen_balance/AppTrackerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/android/app/src/main/java/com/example/screen_balance/AppTrackerService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/android/app/src/main/kotlin/com/example/screen_balance/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/android/app/src/main/kotlin/com/example/screen_balance/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/android/app/src/main/res/xml/accessibility_service_config.xml" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/android/app/src/main/res/xml/accessibility_service_config.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/logic/intervention_engine.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/logic/intervention_engine.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/models/boundary_settings.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/models/boundary_settings.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/screens/accessibility_permission_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/screens/accessibility_permission_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/screens/auth_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/screens/auth_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/screens/boundary_config_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/screens/boundary_config_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/screens/calibration_confirmation_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/screens/calibration_confirmation_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/screens/dashboard_shell.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/screens/dashboard_shell.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/screens/insights_dashboard_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/screens/insights_dashboard_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/screens/intervention_overlay_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/screens/intervention_overlay_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/screens/profile_card_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/screens/profile_card_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/lib/screens/welcome_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/lib/screens/welcome_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/linux/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/linux/flutter/generated_plugin_registrant.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/linux/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/linux/flutter/generated_plugins.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/macos/Flutter/GeneratedPluginRegistrant.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/test/widget_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/test/widget_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance/windows/flutter/generated_plugins.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/integration_test/boundaries_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/integration_test/boundaries_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/integration_test/login_flow_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/integration_test/login_flow_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/integration_test/onboarding_observation_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/integration_test/onboarding_observation_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/integration_test/onboarding_quiz_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/integration_test/onboarding_quiz_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/integration_test/os_telemetry_simulation_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/integration_test/os_telemetry_simulation_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/integration_test/real_os_telemetry_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/integration_test/real_os_telemetry_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/integration_test/real_scroll_typing_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/integration_test/real_scroll_typing_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/integration_test/telemetry_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/integration_test/telemetry_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/integration_test/wellness_dashboard_interaction_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/integration_test/wellness_dashboard_interaction_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/linux/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/linux/flutter/generated_plugin_registrant.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/linux/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/linux/flutter/generated_plugins.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/macos/Flutter/GeneratedPluginRegistrant.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/test_report.txt" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/test_report.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen_balance_test/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/screen_balance_test/windows/flutter/generated_plugins.cmake" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
